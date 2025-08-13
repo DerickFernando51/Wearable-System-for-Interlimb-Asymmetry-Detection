@@ -9,14 +9,14 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from "recharts";
-import "./App.css"; 
+import "./App.css";
 
 function App() {
   const [leftFoot, setLeftFoot] = useState(null);
   const [rightFoot, setRightFoot] = useState(null);
-  const [leftFootHistory, setLeftFootHistory] = useState([]);
+  const [leftFootProcessed, setLeftFootProcessed] = useState([]);
 
   const handleStart = () => {
     set(ref(database, "commands/recording"), true);
@@ -26,7 +26,8 @@ function App() {
     set(ref(database, "commands/recording"), false);
   };
 
-  useEffect(() => {
+   //Real-time table (Firebase subscription)
+   useEffect(() => {
     const leftRef = ref(database, "leftFoot");
     const rightRef = ref(database, "rightFoot");
 
@@ -34,32 +35,16 @@ function App() {
       const data = snapshot.val();
       if (data) {
         const entries = Object.values(data);
-        const latest = entries[entries.length - 1];
-        setLeftFoot(latest);
-
-        // Store last 50 points for plotting
-        const history = entries.map((item, index) => ({
-          id: index,
-          accel_x: item?.accel?.x || 0,
-          accel_y: item?.accel?.y || 0,
-          accel_z: item?.accel?.z || 0,
-        }));
-        setLeftFootHistory(history.slice(-50));
-      } else {
-        setLeftFoot(null);
-        setLeftFootHistory([]);
-      }
+        setLeftFoot(entries[entries.length - 1]);
+      } else setLeftFoot(null);
     });
 
     const unsubscribeRight = onValue(rightRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const entries = Object.values(data);
-        const latest = entries[entries.length - 1];
-        setRightFoot(latest);
-      } else {
-        setRightFoot(null);
-      }
+        setRightFoot(entries[entries.length - 1]);
+      } else setRightFoot(null);
     });
 
     return () => {
@@ -67,6 +52,21 @@ function App() {
       unsubscribeRight();
     };
   }, []);
+
+  // Real-time graphs (web socket) 
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8000/ws/imu");
+  
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.leftFoot) setLeftFootProcessed(data.leftFoot);
+    };
+  
+    ws.onclose = () => console.log("WebSocket closed");
+  
+    return () => ws.close();
+  }, []);
+  
 
   const renderRow = (label, leftValue, rightValue, className = "") => (
     <tr className={`table-row ${className}`}>
@@ -83,6 +83,7 @@ function App() {
           Wearable Device for Interlimb Asymmetry Detection
         </h1>
 
+        {/* Table + Buttons */}
         <div className="table-button-container">
           <div className="table-wrapper">
             <table className="data-table">
@@ -94,7 +95,11 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {renderRow("Timestamp", leftFoot?.timestamp, rightFoot?.timestamp)}
+                {renderRow(
+                  "Timestamp",
+                  leftFoot?.timestamp,
+                  rightFoot?.timestamp
+                )}
                 {renderRow("Force", leftFoot?.force, rightFoot?.force)}
 
                 <tr className="section-row">
@@ -102,18 +107,48 @@ function App() {
                     Accelerometer
                   </td>
                 </tr>
-                {renderRow("X", leftFoot?.accel?.x, rightFoot?.accel?.x, "indented")}
-                {renderRow("Y", leftFoot?.accel?.y, rightFoot?.accel?.y, "indented")}
-                {renderRow("Z", leftFoot?.accel?.z, rightFoot?.accel?.z, "indented")}
+                {renderRow(
+                  "X",
+                  leftFoot?.accel?.x,
+                  rightFoot?.accel?.x,
+                  "indented"
+                )}
+                {renderRow(
+                  "Y",
+                  leftFoot?.accel?.y,
+                  rightFoot?.accel?.y,
+                  "indented"
+                )}
+                {renderRow(
+                  "Z",
+                  leftFoot?.accel?.z,
+                  rightFoot?.accel?.z,
+                  "indented"
+                )}
 
                 <tr className="section-row">
                   <td className="section-cell" colSpan="3">
                     Angular Velocity
                   </td>
                 </tr>
-                {renderRow("X", leftFoot?.gyro?.x, rightFoot?.gyro?.x, "indented")}
-                {renderRow("Y", leftFoot?.gyro?.y, rightFoot?.gyro?.y, "indented")}
-                {renderRow("Z", leftFoot?.gyro?.z, rightFoot?.gyro?.z, "indented")}
+                {renderRow(
+                  "X",
+                  leftFoot?.gyro?.x,
+                  rightFoot?.gyro?.x,
+                  "indented"
+                )}
+                {renderRow(
+                  "Y",
+                  leftFoot?.gyro?.y,
+                  rightFoot?.gyro?.y,
+                  "indented"
+                )}
+                {renderRow(
+                  "Z",
+                  leftFoot?.gyro?.z,
+                  rightFoot?.gyro?.z,
+                  "indented"
+                )}
               </tbody>
             </table>
           </div>
@@ -128,27 +163,79 @@ function App() {
           </div>
         </div>
 
-        {/* Styled Chart Section */}
-        <div className="table-wrapper" style={{ marginTop: "30px" }}>
-          <div className="section-row">
-            <div className="section-cell" style={{ fontWeight: "bold" }}>
-              Left Foot Acceleration (X, Y, Z)
-            </div>
-          </div>
-          <div style={{ padding: "20px" }}>
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={leftFootHistory}>
-                <CartesianGrid stroke="#e0e0e0" strokeDasharray="3 3" />
-                <XAxis dataKey="id" label={{ value: "Sample Index", position: "insideBottom", offset: -5 }} />
-                <YAxis />
-                <Tooltip contentStyle={{ backgroundColor: "#f9f9f9", borderRadius: "8px" }} />
-                <Legend />
-                <Line type="monotone" dataKey="accel_x" stroke="#ff4d4f" strokeWidth={2} name="Accel X" dot={false} />
-                <Line type="monotone" dataKey="accel_y" stroke="#52c41a" strokeWidth={2} name="Accel Y" dot={false} />
-                <Line type="monotone" dataKey="accel_z" stroke="#1890ff" strokeWidth={2} name="Accel Z" dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+        {/* GRAPHS */}
+        <div className="graph-section">
+          <h2 className="graph-title">Left Foot Acceleration - Raw</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={leftFootProcessed}
+              className="line-chart-container"
+            >
+              <CartesianGrid stroke="#ccc" />
+              <XAxis dataKey="timestamp" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="raw.x"
+                stroke="#ff4d4f"
+                name="Accel X"
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="raw.y"
+                stroke="#52c41a"
+                name="Accel Y"
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="raw.z"
+                stroke="#1890ff"
+                name="Accel Z"
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer><br></br><br></br><br></br>
+
+          <h2 className="graph-title">
+            Left Foot Acceleration - DC Bias Removed
+          </h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={leftFootProcessed}
+              className="line-chart-container"
+            >
+              <CartesianGrid stroke="#ccc" />
+              <XAxis dataKey="timestamp" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="dcb_removed.x"
+                stroke="#ff4d4f"
+                name="Accel X (DCB)"
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="dcb_removed.y"
+                stroke="#52c41a"
+                name="Accel Y (DCB)"
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="dcb_removed.z"
+                stroke="#1890ff"
+                name="Accel Z (DCB)"
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer><br></br><br></br>
         </div>
       </div>
     </div>

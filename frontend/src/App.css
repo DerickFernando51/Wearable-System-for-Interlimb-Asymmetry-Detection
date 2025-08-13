@@ -216,3 +216,31 @@ tr.indented td.label {
     padding: 0.75rem 1rem;
   }
 }
+
+/* Graph section */
+.graph-section {
+  margin-top: 20px;
+}
+
+.graph-title {
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+.line-chart-container {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 30px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .table-button-container {
+    gap: 15px;
+  }
+
+  .control-button {
+    flex: 1;
+  }
+}
