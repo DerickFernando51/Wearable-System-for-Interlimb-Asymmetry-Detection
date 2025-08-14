@@ -17,6 +17,7 @@ function App() {
   const [leftFoot, setLeftFoot] = useState(null);
   const [rightFoot, setRightFoot] = useState(null);
   const [leftFootProcessed, setLeftFootProcessed] = useState([]);
+  const [rightFootProcessed, setRightFootProcessed] = useState([]);
 
   const handleStart = () => {
     set(ref(database, "commands/recording"), true);
@@ -26,8 +27,8 @@ function App() {
     set(ref(database, "commands/recording"), false);
   };
 
-   //Real-time table (Firebase subscription)
-   useEffect(() => {
+  //Real-time table (Firebase subscription)
+  useEffect(() => {
     const leftRef = ref(database, "leftFoot");
     const rightRef = ref(database, "rightFoot");
 
@@ -53,20 +54,20 @@ function App() {
     };
   }, []);
 
-  // Real-time graphs (web socket) 
+  // Real-time graphs (web socket)
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8000/ws/imu");
-  
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.leftFoot) setLeftFootProcessed(data.leftFoot);
+      if (data.rightFoot) setRightFootProcessed(data.rightFoot);
     };
-  
+
     ws.onclose = () => console.log("WebSocket closed");
-  
+
     return () => ws.close();
   }, []);
-  
 
   const renderRow = (label, leftValue, rightValue, className = "") => (
     <tr className={`table-row ${className}`}>
@@ -165,77 +166,157 @@ function App() {
 
         {/* GRAPHS */}
         <div className="graph-section">
-          <h2 className="graph-title">Left Foot Acceleration - Raw</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={leftFootProcessed}
-              className="line-chart-container"
-            >
-              <CartesianGrid stroke="#ccc" />
-              <XAxis dataKey="timestamp" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="raw.x"
-                stroke="#ff4d4f"
-                name="Accel X"
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="raw.y"
-                stroke="#52c41a"
-                name="Accel Y"
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="raw.z"
-                stroke="#1890ff"
-                name="Accel Z"
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer><br></br><br></br><br></br>
+          <div className="graph-columns">
+            {/* LEFT FOOT GRAPHS */}
+            <div className="graph-column">
+              <h2 className="graph-title">Left Foot Acceleration - Raw</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={leftFootProcessed}
+                  className="line-chart-container"
+                >
+                  <CartesianGrid stroke="#ccc" />
+                  <XAxis dataKey="timestamp" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="raw.x"
+                    stroke="#ff4d4f"
+                    name="Accel X"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="raw.y"
+                    stroke="#52c41a"
+                    name="Accel Y"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="raw.z"
+                    stroke="#1890ff"
+                    name="Accel Z"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
 
-          <h2 className="graph-title">
-            Left Foot Acceleration - DC Bias Removed
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={leftFootProcessed}
-              className="line-chart-container"
-            >
-              <CartesianGrid stroke="#ccc" />
-              <XAxis dataKey="timestamp" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="dcb_removed.x"
-                stroke="#ff4d4f"
-                name="Accel X (DCB)"
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="dcb_removed.y"
-                stroke="#52c41a"
-                name="Accel Y (DCB)"
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="dcb_removed.z"
-                stroke="#1890ff"
-                name="Accel Z (DCB)"
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer><br></br><br></br>
+              <h2 className="graph-title">
+                Left Foot Acceleration - DC Bias Removed
+              </h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={leftFootProcessed}
+                  className="line-chart-container"
+                >
+                  <CartesianGrid stroke="#ccc" />
+                  <XAxis dataKey="timestamp" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="dcb_removed.x"
+                    stroke="#ff4d4f"
+                    name="Accel X (DCB)"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="dcb_removed.y"
+                    stroke="#52c41a"
+                    name="Accel Y (DCB)"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="dcb_removed.z"
+                    stroke="#1890ff"
+                    name="Accel Z (DCB)"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* RIGHT FOOT GRAPHS */}
+            <div className="graph-column">
+              <h2 className="graph-title">Right Foot Acceleration - Raw</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={rightFootProcessed}
+                  className="line-chart-container"
+                >
+                  <CartesianGrid stroke="#ccc" />
+                  <XAxis dataKey="timestamp" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="raw.x"
+                    stroke="#ff4d4f"
+                    name="Accel X"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="raw.y"
+                    stroke="#52c41a"
+                    name="Accel Y"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="raw.z"
+                    stroke="#1890ff"
+                    name="Accel Z"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+
+              <h2 className="graph-title">
+                Right Foot Acceleration - DC Bias Removed
+              </h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={rightFootProcessed}
+                  className="line-chart-container"
+                >
+                  <CartesianGrid stroke="#ccc" />
+                  <XAxis dataKey="timestamp" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="dcb_removed.x"
+                    stroke="#ff4d4f"
+                    name="Accel X (DCB)"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="dcb_removed.y"
+                    stroke="#52c41a"
+                    name="Accel Y (DCB)"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="dcb_removed.z"
+                    stroke="#1890ff"
+                    name="Accel Z (DCB)"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       </div>
     </div>
