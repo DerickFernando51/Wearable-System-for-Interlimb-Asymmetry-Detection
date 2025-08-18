@@ -276,7 +276,8 @@ tr.indented td.label {
 
 .graph-column {
   flex: 1;  
-  min-width: 0;  
+  min-width: 0; 
+  margin-top: 30px; 
 }
 
 
@@ -343,9 +344,10 @@ tr.indented td.label {
 
 .graph-header {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 15px;
+  align-items: center;
+  gap: 15px;  
+  width: 100%; 
+  min-width: 0;  
 }
 
 @media (max-width: 768px) {

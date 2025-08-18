@@ -18,8 +18,10 @@ function App() {
   const [rightFoot, setRightFoot] = useState(null);
   const [leftFootProcessed, setLeftFootProcessed] = useState([]);
   const [rightFootProcessed, setRightFootProcessed] = useState([]);
-  const [leftView, setLeftView] = useState("raw");
-  const [rightView, setRightView] = useState("raw");
+  const [leftAccelView, setLeftAccelView] = useState("raw");
+  const [rightAccelView, setRightAccelView] = useState("raw");
+  const [leftGyroView, setLeftGyroView] = useState("raw");
+  const [rightGyroView, setRightGyroView] = useState("raw");
 
   const handleStart = () => {
     set(ref(database, "commands/recording"), true);
@@ -181,42 +183,44 @@ function App() {
             </button>
           </div>
         </div>
+        <br></br>
+        <br></br>
 
         {/* GRAPHS */}
         <div className="graph-section">
           <div className="graph-columns">
-            {/* LEFT FOOT */}
+            {/* LEFT FOOT ACCEL */}
             <div className="graph-column">
-              <div className="graph-header">
-                <h2 className="graph-title">Left Foot Acceleration</h2>
-
-                {/*Dropdown */}
-                <div className="graph-controls enhanced-dropdown">
-                  <div className="dropdown-container">
-                    <div className="select-wrapper">
-                      <select
-                        id="left-view-select"
-                        value={leftView}
-                        onChange={(e) => setLeftView(e.target.value)}
-                        className="view-select"
-                      >
-                        {viewOptions.map((option) => (
-                          <option
-                            key={`left-${option.value}`}
-                            value={option.value}
-                          >
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="select-arrow">▼</div>
+              <div className="graph-header flex items-center gap-4">
+                <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
+                  Right Foot Acceleration
+                </h2>
+                <div className="graph-controls">
+                  <div className="select-wrapper relative">
+                    <select
+                      id="right-accel-view-select"
+                      value={rightAccelView}
+                      onChange={(e) => setRightAccelView(e.target.value)}
+                      className="view-select border rounded px-2 py-1"
+                    >
+                      {viewOptions.map((option) => (
+                        <option
+                          key={`right-accel-${option.value}`}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="select-arrow absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                      ▼
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Chart */}
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height={350}>
                 <LineChart
                   data={leftFootProcessed}
                   className="line-chart-container"
@@ -249,7 +253,7 @@ function App() {
                   <Legend wrapperStyle={{ paddingTop: "10px" }} />
                   <Line
                     type="monotone"
-                    dataKey={`${leftView}.x`}
+                    dataKey={`accel.${leftAccelView}.x`}
                     stroke="#ff4d4f"
                     name="Accel X"
                     dot={false}
@@ -258,7 +262,7 @@ function App() {
                   />
                   <Line
                     type="monotone"
-                    dataKey={`${leftView}.y`}
+                    dataKey={`accel.${leftAccelView}.y`}
                     stroke="#52c41a"
                     name="Accel Y"
                     dot={false}
@@ -267,7 +271,7 @@ function App() {
                   />
                   <Line
                     type="monotone"
-                    dataKey={`${leftView}.z`}
+                    dataKey={`accel.${leftAccelView}.z`}
                     stroke="#1890ff"
                     name="Accel Z"
                     dot={false}
@@ -278,38 +282,38 @@ function App() {
               </ResponsiveContainer>
             </div>
 
-            {/* RIGHT FOOT */}
+            {/* RIGHT FOOT ACCEL */}
             <div className="graph-column">
-              <div className="graph-header">
-                <h2 className="graph-title">Right Foot Acceleration</h2>
-
-                {/*Dropdown */}
-                <div className="graph-controls enhanced-dropdown">
-                  <div className="dropdown-container">
-                    <div className="select-wrapper">
-                      <select
-                        id="right-view-select"
-                        value={rightView}
-                        onChange={(e) => setRightView(e.target.value)}
-                        className="view-select"
-                      >
-                        {viewOptions.map((option) => (
-                          <option
-                            key={`right-${option.value}`}
-                            value={option.value}
-                          >
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="select-arrow">▼</div>
+              <div className="graph-header flex items-center gap-4">
+                <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
+                  Left Foot Acceleration
+                </h2>
+                <div className="graph-controls">
+                  <div className="select-wrapper relative">
+                    <select
+                      id="left-accel-view-select"
+                      value={leftAccelView}
+                      onChange={(e) => setLeftAccelView(e.target.value)}
+                      className="view-select border rounded px-2 py-1"
+                    >
+                      {viewOptions.map((option) => (
+                        <option
+                          key={`left-accel-${option.value}`}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="select-arrow absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                      ▼
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Chart */}
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height={350}>
                 <LineChart
                   data={rightFootProcessed}
                   className="line-chart-container"
@@ -342,7 +346,7 @@ function App() {
                   <Legend wrapperStyle={{ paddingTop: "10px" }} />
                   <Line
                     type="monotone"
-                    dataKey={`${rightView}.x`}
+                    dataKey={`accel.${rightAccelView}.x`}
                     stroke="#ff4d4f"
                     name="Accel X"
                     dot={false}
@@ -351,7 +355,7 @@ function App() {
                   />
                   <Line
                     type="monotone"
-                    dataKey={`${rightView}.y`}
+                    dataKey={`accel.${rightAccelView}.y`}
                     stroke="#52c41a"
                     name="Accel Y"
                     dot={false}
@@ -360,7 +364,7 @@ function App() {
                   />
                   <Line
                     type="monotone"
-                    dataKey={`${rightView}.z`}
+                    dataKey={`accel.${rightAccelView}.z`}
                     stroke="#1890ff"
                     name="Accel Z"
                     dot={false}
@@ -372,12 +376,193 @@ function App() {
             </div>
           </div>
           <br></br>
+
+          <div className="graph-columns">
+            {/* LEFT FOOT  GYRO*/}
+            <div className="graph-column">
+              <div className="graph-header flex items-center gap-4">
+                <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
+                  Left Foot Angular Velocity
+                </h2>
+
+                {/* Dropdown */}
+                <div className="graph-controls">
+                  <div className="select-wrapper relative">
+                    <select
+                      id="left-gyro-view-select"
+                      value={leftGyroView}
+                      onChange={(e) => setLeftGyroView(e.target.value)}
+                      className="view-select border rounded px-2 py-1"
+                    >
+                      {viewOptions.map((option) => (
+                        <option
+                          key={`left-gyro-${option.value}`}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="select-arrow absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                      ▼
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chart */}
+              <ResponsiveContainer width="100%" height={350}>
+                <LineChart
+                  data={leftFootProcessed}
+                  className="line-chart-container"
+                >
+                  <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="timestamp"
+                    tick={{ fontSize: 12 }}
+                    label={{
+                      value: "Time",
+                      position: "insideBottomRight",
+                      offset: -5,
+                    }}
+                  />
+                  <YAxis
+                    label={{
+                      value: "Angular Velocity (°/s)", // Change label for gyro
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: "10px" }} />
+
+                  <Line
+                    type="monotone"
+                    dataKey={`gyro.${leftGyroView}.x`}
+                    stroke="#ff4d4f"
+                    name="Gyro X"
+                    dot={false}
+                    strokeWidth={2}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey={`gyro.${leftGyroView}.y`}
+                    stroke="#52c41a"
+                    name="Gyro Y"
+                    dot={false}
+                    strokeWidth={2}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey={`gyro.${leftGyroView}.z`}
+                    stroke="#1890ff"
+                    name="Gyro Z"
+                    dot={false}
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* RIGHT FOOT GYRO*/}
+            <div className="graph-column">
+              <div className="graph-header flex items-center gap-4">
+                <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
+                  Right Foot Angular Velocity
+                </h2>
+                <div className="graph-controls">
+                  <div className="select-wrapper relative">
+                    <select
+                      id="right-gyro-view-select"
+                      value={rightGyroView}
+                      onChange={(e) => setRightGyroView(e.target.value)}
+                      className="view-select border rounded px-2 py-1"
+                    >
+                      {viewOptions.map((option) => (
+                        <option
+                          key={`right-gyro-${option.value}`}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="select-arrow absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                      ▼
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chart */}
+              <ResponsiveContainer width="100%" height={350}>
+                <LineChart
+                  data={rightFootProcessed}
+                  className="line-chart-container"
+                >
+                  <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="timestamp"
+                    tick={{ fontSize: 12 }}
+                    label={{
+                      value: "Time",
+                      position: "insideBottomRight",
+                      offset: -5,
+                    }}
+                  />
+                  <YAxis
+                    label={{
+                      value: "Angular Velocity (°/s)",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: "10px" }} />
+                  <Line
+                    type="monotone"
+                    dataKey={`gyro.${rightGyroView}.x`}
+                    stroke="#ff4d4f"
+                    name="Gyro X"
+                    dot={false}
+                    strokeWidth={2}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey={`gyro.${rightGyroView}.y`}
+                    stroke="#52c41a"
+                    name="Gyro Y"
+                    dot={false}
+                    strokeWidth={2}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey={`gyro.${rightGyroView}.z`}
+                    stroke="#1890ff"
+                    name="Gyro Z"
+                    dot={false}
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
           <br></br>
           <br></br>
-
-          
-
-
         </div>
       </div>
     </div>
