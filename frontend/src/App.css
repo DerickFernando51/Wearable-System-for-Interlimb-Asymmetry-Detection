@@ -148,15 +148,15 @@ tr.indented td.label {
 }
 
 /* Horizontal container for table and buttons */
-.table-button-container {
+ .table-button-container {
   display: flex;
-  align-items: flex-start;
-  gap: 8rem;
-  overflow-x: auto;
-  padding: 4rem;
+  justify-content: center; 
+  gap: 15rem;                        
+  overflow-x: auto;        
+  width: 100%;
+  margin-top: 3rem; 
 }
 
- 
 .table-wrapper {
   background: white;
   border: 1px solid #cbd5e1;
@@ -221,9 +221,10 @@ tr.indented td.label {
 .graph-container {
   display: flex;
   justify-content: center;
+  margin-top: 4rem;
   gap: 30px;  
   width: 100%;
-  padding: 20px;
+  padding: 10px;
   box-sizing: border-box;
 }
 
@@ -278,3 +279,81 @@ tr.indented td.label {
   min-width: 0;  
 }
 
+
+/* Dropdown Styles */
+.enhanced-dropdown {
+  margin-bottom: 15px;
+}
+
+.dropdown-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dropdown-label {
+  font-weight: 500;
+  color: #555;
+  font-size: 14px;
+}
+
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 200px;
+}
+
+.view-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.view-select:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #666;
+  font-size: 12px;
+}
+
+.view-description {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.graph-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+  .graph-header {
+    flex-direction: column;
+  }
+  
+  .select-wrapper {
+    width: 100%;
+  }
+}

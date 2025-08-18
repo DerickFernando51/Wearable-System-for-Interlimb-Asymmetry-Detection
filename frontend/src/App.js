@@ -29,7 +29,7 @@ function App() {
     set(ref(database, "commands/recording"), false);
   };
 
-  //Real-time table (Firebase subscription)
+  // Real-time table (Firebase subscription)
   useEffect(() => {
     const leftRef = ref(database, "leftFoot");
     const rightRef = ref(database, "rightFoot");
@@ -79,12 +79,29 @@ function App() {
     </tr>
   );
 
+  // View options
+  const viewOptions = [
+    {
+      value: "raw",
+      label: "Raw Data",
+    },
+    {
+      value: "dcb_removed",
+      label: "DC Bias Removed",
+    },
+    {
+      value: "median_filtered",
+      label: "Median Filtered",
+    },
+  ];
+
   return (
     <div className="container">
       <div className="content">
         <h1 className="title">
           Wearable Device for Interlimb Asymmetry Detection
         </h1>
+
         {/* Table + Buttons */}
         <div className="table-button-container">
           <div className="table-wrapper">
@@ -164,44 +181,80 @@ function App() {
             </button>
           </div>
         </div>
-        
+
         {/* GRAPHS */}
         <div className="graph-section">
           <div className="graph-columns">
             {/* LEFT FOOT */}
             <div className="graph-column">
-              <h2 className="graph-title">Left Foot Acceleration</h2>
+              <div className="graph-header">
+                <h2 className="graph-title">Left Foot Acceleration</h2>
 
-              {/* Dropdown */}
-              <div className="graph-controls">
-                <label className="mr-2">View:</label>
-                <select
-                  value={leftView}
-                  onChange={(e) => setLeftView(e.target.value)}
-                >
-                  <option value="raw">Raw</option>
-                  <option value="dcb_removed">DC Bias Removed</option>
-                  <option value="median_filtered">Median Filtered</option>
-                </select>
+                {/*Dropdown */}
+                <div className="graph-controls enhanced-dropdown">
+                  <div className="dropdown-container">
+                    <div className="select-wrapper">
+                      <select
+                        id="left-view-select"
+                        value={leftView}
+                        onChange={(e) => setLeftView(e.target.value)}
+                        className="view-select"
+                      >
+                        {viewOptions.map((option) => (
+                          <option
+                            key={`left-${option.value}`}
+                            value={option.value}
+                          >
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="select-arrow">▼</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Chart */}
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={400}>
                 <LineChart
                   data={leftFootProcessed}
                   className="line-chart-container"
                 >
-                  <CartesianGrid stroke="#ccc" />
-                  <XAxis dataKey="timestamp" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
+                  <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="timestamp"
+                    tick={{ fontSize: 12 }}
+                    label={{
+                      value: "Time",
+                      position: "insideBottomRight",
+                      offset: -5,
+                    }}
+                  />
+                  <YAxis
+                    label={{
+                      value: "Acceleration (m/s²)",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: "10px" }} />
                   <Line
                     type="monotone"
                     dataKey={`${leftView}.x`}
                     stroke="#ff4d4f"
                     name="Accel X"
                     dot={false}
+                    strokeWidth={2}
+                    activeDot={{ r: 6 }}
                   />
                   <Line
                     type="monotone"
@@ -209,6 +262,8 @@ function App() {
                     stroke="#52c41a"
                     name="Accel Y"
                     dot={false}
+                    strokeWidth={2}
+                    activeDot={{ r: 6 }}
                   />
                   <Line
                     type="monotone"
@@ -216,6 +271,8 @@ function App() {
                     stroke="#1890ff"
                     name="Accel Z"
                     dot={false}
+                    strokeWidth={2}
+                    activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -223,38 +280,74 @@ function App() {
 
             {/* RIGHT FOOT */}
             <div className="graph-column">
-              <h2 className="graph-title">Right Foot Acceleration</h2>
+              <div className="graph-header">
+                <h2 className="graph-title">Right Foot Acceleration</h2>
 
-              {/* Dropdown */}
-              <div className="graph-controls">
-                <label className="mr-2">View:</label>
-                <select
-                  value={rightView}
-                  onChange={(e) => setRightView(e.target.value)}
-                >
-                  <option value="raw">Raw</option>
-                  <option value="dcb_removed">DC Bias Removed</option>
-                  <option value="median_filtered">Median Filtered</option>
-                </select>
+                {/*Dropdown */}
+                <div className="graph-controls enhanced-dropdown">
+                  <div className="dropdown-container">
+                    <div className="select-wrapper">
+                      <select
+                        id="right-view-select"
+                        value={rightView}
+                        onChange={(e) => setRightView(e.target.value)}
+                        className="view-select"
+                      >
+                        {viewOptions.map((option) => (
+                          <option
+                            key={`right-${option.value}`}
+                            value={option.value}
+                          >
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="select-arrow">▼</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Chart */}
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={400}>
                 <LineChart
                   data={rightFootProcessed}
                   className="line-chart-container"
                 >
-                  <CartesianGrid stroke="#ccc" />
-                  <XAxis dataKey="timestamp" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
+                  <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="timestamp"
+                    tick={{ fontSize: 12 }}
+                    label={{
+                      value: "Time",
+                      position: "insideBottomRight",
+                      offset: -5,
+                    }}
+                  />
+                  <YAxis
+                    label={{
+                      value: "Acceleration (m/s²)",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: "10px" }} />
                   <Line
                     type="monotone"
                     dataKey={`${rightView}.x`}
                     stroke="#ff4d4f"
                     name="Accel X"
                     dot={false}
+                    strokeWidth={2}
+                    activeDot={{ r: 6 }}
                   />
                   <Line
                     type="monotone"
@@ -262,6 +355,8 @@ function App() {
                     stroke="#52c41a"
                     name="Accel Y"
                     dot={false}
+                    strokeWidth={2}
+                    activeDot={{ r: 6 }}
                   />
                   <Line
                     type="monotone"
@@ -269,13 +364,21 @@ function App() {
                     stroke="#1890ff"
                     name="Accel Z"
                     dot={false}
+                    strokeWidth={2}
+                    activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
+          <br></br>
+          <br></br>
+          <br></br>
+
+          
+
+
         </div>
-        ); }
       </div>
     </div>
   );
