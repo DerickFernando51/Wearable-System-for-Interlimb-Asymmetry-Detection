@@ -18,6 +18,8 @@ function App() {
   const [rightFoot, setRightFoot] = useState(null);
   const [leftFootProcessed, setLeftFootProcessed] = useState([]);
   const [rightFootProcessed, setRightFootProcessed] = useState([]);
+  const [leftView, setLeftView] = useState("raw");
+  const [rightView, setRightView] = useState("raw");
 
   const handleStart = () => {
     set(ref(database, "commands/recording"), true);
@@ -83,7 +85,6 @@ function App() {
         <h1 className="title">
           Wearable Device for Interlimb Asymmetry Detection
         </h1>
-
         {/* Table + Buttons */}
         <div className="table-button-container">
           <div className="table-wrapper">
@@ -163,92 +164,28 @@ function App() {
             </button>
           </div>
         </div>
-
+        
         {/* GRAPHS */}
         <div className="graph-section">
           <div className="graph-columns">
-            {/* LEFT FOOT GRAPHS */}
+            {/* LEFT FOOT */}
             <div className="graph-column">
-              <h2 className="graph-title">Left Foot Acceleration - Raw</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={leftFootProcessed}
-                  className="line-chart-container"
-                >
-                  <CartesianGrid stroke="#ccc" />
-                  <XAxis dataKey="timestamp" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="raw.x"
-                    stroke="#ff4d4f"
-                    name="Accel X"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="raw.y"
-                    stroke="#52c41a"
-                    name="Accel Y"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="raw.z"
-                    stroke="#1890ff"
-                    name="Accel Z"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <br></br>
-              <br></br>
-              <br></br>
+              <h2 className="graph-title">Left Foot Acceleration</h2>
 
-              <h2 className="graph-title">
-                Left Foot Acceleration - DC Bias Removed
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={leftFootProcessed}
-                  className="line-chart-container"
+              {/* Dropdown */}
+              <div className="graph-controls">
+                <label className="mr-2">View:</label>
+                <select
+                  value={leftView}
+                  onChange={(e) => setLeftView(e.target.value)}
                 >
-                  <CartesianGrid stroke="#ccc" />
-                  <XAxis dataKey="timestamp" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="dcb_removed.x"
-                    stroke="#ff4d4f"
-                    name="Accel X"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="dcb_removed.y"
-                    stroke="#52c41a"
-                    name="Accel Y"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="dcb_removed.z"
-                    stroke="#1890ff"
-                    name="Accel Z"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <br></br>
-              <br></br>
+                  <option value="raw">Raw</option>
+                  <option value="dcb_removed">DC Bias Removed</option>
+                  <option value="median_filtered">Median Filtered</option>
+                </select>
+              </div>
 
-              <h2 className="graph-title">
-                Left Foot Acceleration - Median Filtered
-              </h2>
+              {/* Chart */}
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart
                   data={leftFootProcessed}
@@ -261,34 +198,47 @@ function App() {
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="median_filtered.x"
+                    dataKey={`${leftView}.x`}
                     stroke="#ff4d4f"
                     name="Accel X"
                     dot={false}
                   />
                   <Line
                     type="monotone"
-                    dataKey="median_filtered.y"
+                    dataKey={`${leftView}.y`}
                     stroke="#52c41a"
                     name="Accel Y"
                     dot={false}
                   />
                   <Line
                     type="monotone"
-                    dataKey="median_filtered.z"
+                    dataKey={`${leftView}.z`}
                     stroke="#1890ff"
                     name="Accel Z"
                     dot={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
-              <br />
-              <br />
             </div>
 
-            {/* RIGHT FOOT GRAPHS */}
+            {/* RIGHT FOOT */}
             <div className="graph-column">
-              <h2 className="graph-title">Right Foot Acceleration - Raw</h2>
+              <h2 className="graph-title">Right Foot Acceleration</h2>
+
+              {/* Dropdown */}
+              <div className="graph-controls">
+                <label className="mr-2">View:</label>
+                <select
+                  value={rightView}
+                  onChange={(e) => setRightView(e.target.value)}
+                >
+                  <option value="raw">Raw</option>
+                  <option value="dcb_removed">DC Bias Removed</option>
+                  <option value="median_filtered">Median Filtered</option>
+                </select>
+              </div>
+
+              {/* Chart */}
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart
                   data={rightFootProcessed}
@@ -301,110 +251,31 @@ function App() {
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="raw.x"
+                    dataKey={`${rightView}.x`}
                     stroke="#ff4d4f"
                     name="Accel X"
                     dot={false}
                   />
                   <Line
                     type="monotone"
-                    dataKey="raw.y"
+                    dataKey={`${rightView}.y`}
                     stroke="#52c41a"
                     name="Accel Y"
                     dot={false}
                   />
                   <Line
                     type="monotone"
-                    dataKey="raw.z"
+                    dataKey={`${rightView}.z`}
                     stroke="#1890ff"
                     name="Accel Z"
                     dot={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
-              <br></br>
-              <br></br>
-              <br></br>
-
-              <h2 className="graph-title">
-                Right Foot Acceleration - DC Bias Removed
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={rightFootProcessed}
-                  className="line-chart-container"
-                >
-                  <CartesianGrid stroke="#ccc" />
-                  <XAxis dataKey="timestamp" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="dcb_removed.x"
-                    stroke="#ff4d4f"
-                    name="Accel X (DCB)"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="dcb_removed.y"
-                    stroke="#52c41a"
-                    name="Accel Y (DCB)"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="dcb_removed.z"
-                    stroke="#1890ff"
-                    name="Accel Z (DCB)"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <br></br>
-              <br></br>
-              <h2 className="graph-title">
-                Right Foot Acceleration - Median Filtered
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={rightFootProcessed}
-                  className="line-chart-container"
-                >
-                  <CartesianGrid stroke="#ccc" />
-                  <XAxis dataKey="timestamp" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="median_filtered.x"
-                    stroke="#ff4d4f"
-                    name="Accel X (Filtered)"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="median_filtered.y"
-                    stroke="#52c41a"
-                    name="Accel Y (Filtered)"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="median_filtered.z"
-                    stroke="#1890ff"
-                    name="Accel Z (Filtered)"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <br />
-              <br />
             </div>
           </div>
         </div>
+        ); }
       </div>
     </div>
   );
