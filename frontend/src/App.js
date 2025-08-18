@@ -193,19 +193,19 @@ function App() {
             <div className="graph-column">
               <div className="graph-header flex items-center gap-4">
                 <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
-                  Right Foot Acceleration
+                  Left Foot Acceleration
                 </h2>
                 <div className="graph-controls">
                   <div className="select-wrapper relative">
                     <select
-                      id="right-accel-view-select"
-                      value={rightAccelView}
-                      onChange={(e) => setRightAccelView(e.target.value)}
+                      id="left-accel-view-select"
+                      value={leftAccelView}
+                      onChange={(e) => setLeftAccelView(e.target.value)}
                       className="view-select border rounded px-2 py-1"
                     >
                       {viewOptions.map((option) => (
                         <option
-                          key={`right-accel-${option.value}`}
+                          key={`left-accel-${option.value}`}
                           value={option.value}
                         >
                           {option.label}
@@ -286,14 +286,14 @@ function App() {
             <div className="graph-column">
               <div className="graph-header flex items-center gap-4">
                 <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
-                  Left Foot Acceleration
+                   Right Foot Acceleration
                 </h2>
                 <div className="graph-controls">
                   <div className="select-wrapper relative">
                     <select
-                      id="left-accel-view-select"
-                      value={leftAccelView}
-                      onChange={(e) => setLeftAccelView(e.target.value)}
+                      id="right-accel-view-select"
+                      value={rightAccelView}
+                      onChange={(e) => setRightAccelView(e.target.value)}
                       className="view-select border rounded px-2 py-1"
                     >
                       {viewOptions.map((option) => (
@@ -428,7 +428,7 @@ function App() {
                   />
                   <YAxis
                     label={{
-                      value: "Angular Velocity (°/s)", // Change label for gyro
+                      value: "Angular Velocity (°/s)",  
                       angle: -90,
                       position: "insideLeft",
                     }}
