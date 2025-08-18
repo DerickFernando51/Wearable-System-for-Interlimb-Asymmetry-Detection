@@ -4,6 +4,9 @@ from firebase_admin import credentials, db
 import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
+from scipy.signal import medfilt
+
+KERNEL_SIZE=5
 
 # Firebase init
 cred = credentials.Certificate("serviceAccountKey.json")
@@ -42,6 +45,11 @@ async def process_data(foot_name, last_timestamp, websocket):
         accel_y_dcb = accel_y - np.mean(accel_y)
         accel_z_dcb = accel_z - np.mean(accel_z)
 
+         # Median filtering  
+        accel_x_filt = medfilt(accel_x_dcb, kernel_size=KERNEL_SIZE)
+        accel_y_filt = medfilt(accel_y_dcb, kernel_size=KERNEL_SIZE)
+        accel_z_filt = medfilt(accel_z_dcb, kernel_size=KERNEL_SIZE)
+
         # Build payload
         processed_data = [
             {
@@ -55,6 +63,11 @@ async def process_data(foot_name, last_timestamp, websocket):
                     "x": float(accel_x_dcb[i]),
                     "y": float(accel_y_dcb[i]),
                     "z": float(accel_z_dcb[i])
+                },
+                "median_filtered": {
+                    "x": float(accel_x_filt[i]),
+                    "y": float(accel_y_filt[i]),
+                    "z": float(accel_z_filt[i])
                 }
             }
             for i in range(len(sorted_data))

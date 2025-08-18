@@ -203,6 +203,9 @@ function App() {
                   />
                 </LineChart>
               </ResponsiveContainer>
+              <br></br>
+              <br></br>
+              <br></br>
 
               <h2 className="graph-title">
                 Left Foot Acceleration - DC Bias Removed
@@ -221,25 +224,66 @@ function App() {
                     type="monotone"
                     dataKey="dcb_removed.x"
                     stroke="#ff4d4f"
-                    name="Accel X (DCB)"
+                    name="Accel X"
                     dot={false}
                   />
                   <Line
                     type="monotone"
                     dataKey="dcb_removed.y"
                     stroke="#52c41a"
-                    name="Accel Y (DCB)"
+                    name="Accel Y"
                     dot={false}
                   />
                   <Line
                     type="monotone"
                     dataKey="dcb_removed.z"
                     stroke="#1890ff"
-                    name="Accel Z (DCB)"
+                    name="Accel Z"
                     dot={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
+              <br></br>
+              <br></br>
+
+              <h2 className="graph-title">
+                Left Foot Acceleration - Median Filtered
+              </h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={leftFootProcessed}
+                  className="line-chart-container"
+                >
+                  <CartesianGrid stroke="#ccc" />
+                  <XAxis dataKey="timestamp" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="median_filtered.x"
+                    stroke="#ff4d4f"
+                    name="Accel X"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="median_filtered.y"
+                    stroke="#52c41a"
+                    name="Accel Y"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="median_filtered.z"
+                    stroke="#1890ff"
+                    name="Accel Z"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+              <br />
+              <br />
             </div>
 
             {/* RIGHT FOOT GRAPHS */}
@@ -278,6 +322,9 @@ function App() {
                   />
                 </LineChart>
               </ResponsiveContainer>
+              <br></br>
+              <br></br>
+              <br></br>
 
               <h2 className="graph-title">
                 Right Foot Acceleration - DC Bias Removed
@@ -315,6 +362,46 @@ function App() {
                   />
                 </LineChart>
               </ResponsiveContainer>
+              <br></br>
+              <br></br>
+              <h2 className="graph-title">
+                Right Foot Acceleration - Median Filtered
+              </h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={rightFootProcessed}
+                  className="line-chart-container"
+                >
+                  <CartesianGrid stroke="#ccc" />
+                  <XAxis dataKey="timestamp" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="median_filtered.x"
+                    stroke="#ff4d4f"
+                    name="Accel X (Filtered)"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="median_filtered.y"
+                    stroke="#52c41a"
+                    name="Accel Y (Filtered)"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="median_filtered.z"
+                    stroke="#1890ff"
+                    name="Accel Z (Filtered)"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+              <br />
+              <br />
             </div>
           </div>
         </div>
