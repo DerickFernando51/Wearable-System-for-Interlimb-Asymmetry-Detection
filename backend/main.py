@@ -5,13 +5,14 @@ import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 from scipy.signal import medfilt
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 KERNEL_SIZE=5
 
 
 # Firebase init
+load_dotenv()
 db_url = os.getenv("FIREBASE_DB_URL")
 cred = credentials.Certificate("backend/serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
