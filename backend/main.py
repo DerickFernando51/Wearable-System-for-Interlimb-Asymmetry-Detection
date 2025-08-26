@@ -14,7 +14,7 @@ KERNEL_SIZE=5
 # Firebase init
 load_dotenv()
 db_url = os.getenv("FIREBASE_DB_URL")
-cred = credentials.Certificate("serviceAccountKey.json")
+cred = credentials.Certificate("backend/serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
     "databaseURL": db_url
 })
