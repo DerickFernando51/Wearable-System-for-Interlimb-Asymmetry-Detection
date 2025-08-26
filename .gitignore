@@ -1,6 +1,9 @@
 # ======================
 # Node / React frontend
-# ======================
+/frontend/node_modules
+/frontend/build
+/.pnp
+.pnp.js
 /node_modules
 /build
 /.pnp
