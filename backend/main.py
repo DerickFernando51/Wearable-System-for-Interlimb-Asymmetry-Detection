@@ -8,10 +8,13 @@ from scipy.signal import medfilt
 
 KERNEL_SIZE=5
 
+load_dotenv()
+db_url = os.getenv("FIREBASE_DB_URL")
+
 # Firebase init
-cred = credentials.Certificate("serviceAccountKey.json")
+cred = credentials.Certificate("backend/serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
-    "databaseURL": "https://wearable-for-ila-detection-default-rtdb.asia-southeast1.firebasedatabase.app"
+    "databaseURL": db_url
 })
 
 app = FastAPI()
