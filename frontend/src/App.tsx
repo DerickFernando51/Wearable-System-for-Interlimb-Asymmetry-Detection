@@ -51,6 +51,8 @@ function App() {
   const [rightAccelView, setRightAccelView] = useState<AccelView>("raw");
   const [leftGyroView, setLeftGyroView] = useState<GyroView>("raw");
   const [rightGyroView, setRightGyroView] = useState<GyroView>("raw");
+  const [leftForceView, setLeftForceView] = useState<ForceView>("raw");
+  const [rightForceView, setRightForceView] = useState<ForceView>("raw");
 
   const handleStart = () => {
     set(ref(database, "commands/recording"), true);
@@ -255,11 +257,18 @@ function App() {
           </div>
           <div className="graph-columns">
             {/* LEFT FOOT FORCE */}
-            <ForceChart footData={leftFootProcessed} title="Left Foot Force" />
+            <ForceChart
+              footData={leftFootProcessed}
+              title="Left Foot Force"
+              view={leftForceView}
+              setView={setLeftForceView}
+            />
             {/* RIGHT FOOT FORCE */}
             <ForceChart
               footData={rightFootProcessed}
               title="Right Foot Force"
+              view={rightForceView}
+              setView={setRightForceView}
             />
           </div>
         </div>
@@ -368,43 +377,67 @@ const FootChart = ({
   );
 };
 
-
+type ForceView = "raw" | "dcb_removed" | "median_filtered";
 
 interface ForceChartProps {
   footData: FootData[];
   title: string;
+  view: ForceView;
+  setView: (view: ForceView) => void;
 }
 
-const ForceChart = ({ footData, title }: ForceChartProps) => {
+const ForceChart = ({ footData, title, view, setView }: ForceChartProps) => {
+  const viewOptions = [
+    { value: "raw", label: "Raw" },
+    { value: "dcb_removed", label: "DC Bias Removed" },
+    { value: "median_filtered", label: "Median Filtered" },
+  ];
+
+  const getValue = (d: FootData) => {
+    return d.force?.[view] ?? 0;
+  };
+
   return (
     <div className="graph-column">
-      {/* Header */}
       <div className="graph-header flex items-center gap-4">
         <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
           {title}
         </h2>
+        <div className="graph-controls">
+          <div className="select-wrapper relative">
+            <select
+              value={view}
+              onChange={(e) => setView(e.target.value as ForceView)}
+              className="view-select border rounded px-2 py-1"
+            >
+              {viewOptions.map((option) => (
+                <option key={`${title}-${option.value}`} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <div className="select-arrow absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+              ▼
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Chart */}
       <ResponsiveContainer width="100%" height={350}>
-        <LineChart
-          data={footData}
-          className="line-chart-container"
-          style={{ backgroundColor: "#fff", borderRadius: 4, padding: 10 }}
-        >
+        <LineChart data={footData} className="line-chart-container">
           <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
           <XAxis
             dataKey="timestamp"
-            tick={{ fontSize: 12, }} 
-            label={{ value: "Time", position: "insideBottomRight", offset: -5, }}
+            tick={{ fontSize: 12 }}
+            label={{ value: "Time", position: "insideBottomRight", offset: -5 }}
           />
           <YAxis
-            tick={{ fontSize: 12,}}  
             label={{
-              value: "Force (ADC units)",
+              value: "Force (N)", // adjust unit if needed
               angle: -90,
               position: "insideLeft",
             }}
+            tick={{ fontSize: 12 }}
           />
           <Tooltip
             contentStyle={{
@@ -416,9 +449,10 @@ const ForceChart = ({ footData, title }: ForceChartProps) => {
           <Legend wrapperStyle={{ paddingTop: "10px" }} />
           <Line
             type="monotone"
-            dataKey="force"
-            stroke="#1890ff"  
-            dot={false} 
+            dataKey={getValue}
+            stroke="#1890ff"
+            name={`Force (${viewOptions.find((o) => o.value === view)?.label})`}
+            dot={false}
             strokeWidth={2}
           />
         </LineChart>
@@ -426,9 +460,5 @@ const ForceChart = ({ footData, title }: ForceChartProps) => {
     </div>
   );
 };
-
-
-
-
 
 export default App;
