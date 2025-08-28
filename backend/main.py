@@ -40,7 +40,7 @@ async def process_data(foot_name, last_timestamp, websocket):
     latest_timestamp = sorted_data[-1]["timestamp"]
 
     if latest_timestamp != last_timestamp:
-          # Extract acceleration arrays
+        # Extract acceleration arrays
         accel_x = np.array([item.get("accel", {}).get("x", 0) for item in sorted_data])
         accel_y = np.array([item.get("accel", {}).get("y", 0) for item in sorted_data])
         accel_z = np.array([item.get("accel", {}).get("z", 0) for item in sorted_data])

@@ -42,16 +42,6 @@ type FootData = {
 type AccelView = keyof AccelData;
 type GyroView = keyof GyroData;
 
-// Helper to safely access sensor data
-const getSensorValue = (
-  foot: FootData | null,
-  sensor: "accel" | "gyro",
-  view: AccelView | GyroView,
-  axis: keyof SensorAxis
-) => {
-  return foot?.[sensor]?.[view]?.[axis] ?? 0;
-};
-
 function App() {
   const [leftFoot, setLeftFoot] = useState<FootData | null>(null);
   const [rightFoot, setRightFoot] = useState<FootData | null>(null);
@@ -112,24 +102,33 @@ function App() {
     return () => ws.close();
   }, []);
 
-  const renderRow = (
-    label: string,
-    leftValue: any,
-    rightValue: any,
-    className = ""
-  ) => (
-    <tr className={`table-row ${className}`}>
-      <td className="table-cell label">{label}</td>
-      <td className="table-cell">{leftValue ?? "—"}</td>
-      <td className="table-cell">{rightValue ?? "—"}</td>
-    </tr>
-  );
-
   const viewOptions = [
     { value: "raw", label: "Raw Data" },
     { value: "dcb_removed", label: "DC Bias Removed" },
     { value: "median_filtered", label: "Median Filtered" },
   ];
+
+  const getSensorValue = (
+    foot: FootData | null,
+    sensor: "accel" | "gyro",
+    axis: keyof SensorAxis
+  ) => {
+    return foot?.[sensor]?.[axis] ?? 0;
+  };
+
+  const renderRow = (
+    label: string,
+    leftValue: any,
+    rightValue: any,
+    className = "",
+    key?: string
+  ) => (
+    <tr key={key} className={`table-row ${className}`}>
+      <td className="table-cell label">{label}</td>
+      <td className="table-cell">{leftValue ?? "—"}</td>
+      <td className="table-cell">{rightValue ?? "—"}</td>
+    </tr>
+  );
 
   return (
     <div className="container">
@@ -150,10 +149,24 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {renderRow("Timestamp", leftFoot?.timestamp, rightFoot?.timestamp)}
-                {renderRow("Force", leftFoot?.force, rightFoot?.force)}
+                {/* Timestamp and Force */}
+                {renderRow(
+                  "Timestamp",
+                  leftFoot?.timestamp,
+                  rightFoot?.timestamp,
+                  "",
+                  "timestamp"
+                )}
+                {renderRow(
+                  "Force",
+                  leftFoot?.force,
+                  rightFoot?.force,
+                  "",
+                  "force"
+                )}
 
-                <tr className="section-row">
+                {/* Accelerometer Section */}
+                <tr className="section-row" key="accel-section">
                   <td className="section-cell" colSpan={3}>
                     Accelerometer
                   </td>
@@ -161,13 +174,19 @@ function App() {
                 {["x", "y", "z"].map((axis) =>
                   renderRow(
                     axis.toUpperCase(),
-                    getSensorValue(leftFoot, "accel", leftAccelView, axis as keyof SensorAxis),
-                    getSensorValue(rightFoot, "accel", rightAccelView, axis as keyof SensorAxis),
-                    "indented"
+                    getSensorValue(leftFoot, "accel", axis as keyof SensorAxis),
+                    getSensorValue(
+                      rightFoot,
+                      "accel",
+                      axis as keyof SensorAxis
+                    ),
+                    "indented",
+                    `accel-${axis}`
                   )
                 )}
 
-                <tr className="section-row">
+                {/* Gyroscope Section */}
+                <tr className="section-row" key="gyro-section">
                   <td className="section-cell" colSpan={3}>
                     Angular Velocity
                   </td>
@@ -175,9 +194,10 @@ function App() {
                 {["x", "y", "z"].map((axis) =>
                   renderRow(
                     axis.toUpperCase(),
-                    getSensorValue(leftFoot, "gyro", leftGyroView, axis as keyof SensorAxis),
-                    getSensorValue(rightFoot, "gyro", rightGyroView, axis as keyof SensorAxis),
-                    "indented"
+                    getSensorValue(leftFoot, "gyro", axis as keyof SensorAxis),
+                    getSensorValue(rightFoot, "gyro", axis as keyof SensorAxis),
+                    "indented",
+                    `gyro-${axis}`
                   )
                 )}
               </tbody>
@@ -248,7 +268,13 @@ interface FootChartProps {
   type: "accel" | "gyro";
 }
 
-const FootChart = ({ footData, view, setView, title, type }: FootChartProps) => {
+const FootChart = ({
+  footData,
+  view,
+  setView,
+  title,
+  type,
+}: FootChartProps) => {
   const viewOptions = [
     { value: "raw", label: "Raw Data" },
     { value: "dcb_removed", label: "DC Bias Removed" },
@@ -262,7 +288,9 @@ const FootChart = ({ footData, view, setView, title, type }: FootChartProps) => 
   return (
     <div className="graph-column">
       <div className="graph-header flex items-center gap-4">
-        <h2 className="graph-title text-lg font-semibold whitespace-nowrap">{title}</h2>
+        <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
+          {title}
+        </h2>
         <div className="graph-controls">
           <div className="select-wrapper relative">
             <select
@@ -286,24 +314,41 @@ const FootChart = ({ footData, view, setView, title, type }: FootChartProps) => 
       <ResponsiveContainer width="100%" height={350}>
         <LineChart data={footData} className="line-chart-container">
           <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-          <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} label={{ value: "Time", position: "insideBottomRight", offset: -5 }} />
+          <XAxis
+            dataKey="timestamp"
+            tick={{ fontSize: 12 }}
+            label={{ value: "Time", position: "insideBottomRight", offset: -5 }}
+          />
           <YAxis
             label={{
-              value: type === "accel" ? "Acceleration (m/s²)" : "Angular Velocity (°/s)",
+              value:
+                type === "accel"
+                  ? "Acceleration (m/s²)"
+                  : "Angular Velocity (°/s)",
               angle: -90,
               position: "insideLeft",
             }}
             tick={{ fontSize: 12 }}
           />
-          <Tooltip contentStyle={{ backgroundColor: "rgba(255,255,255,0.9)", border: "1px solid #ddd", borderRadius: "4px" }} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "rgba(255,255,255,0.9)",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+            }}
+          />
           <Legend wrapperStyle={{ paddingTop: "10px" }} />
           {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) => (
             <Line
               key={`${title}-${axis}`}
               type="monotone"
               dataKey={(d: FootData) => getValue(d, axis)}
-              stroke={axis === "x" ? "#ff4d4f" : axis === "y" ? "#52c41a" : "#1890ff"}
-              name={`${type === "accel" ? "Accel" : "Gyro"} ${axis.toUpperCase()}`}
+              stroke={
+                axis === "x" ? "#ff4d4f" : axis === "y" ? "#52c41a" : "#1890ff"
+              }
+              name={`${
+                type === "accel" ? "Accel" : "Gyro"
+              } ${axis.toUpperCase()}`}
               dot={false}
               strokeWidth={2}
             />
