@@ -253,13 +253,22 @@ function App() {
               type="gyro"
             />
           </div>
+          <div className="graph-columns">
+            {/* LEFT FOOT FORCE */}
+            <ForceChart footData={leftFootProcessed} title="Left Foot Force" />
+            {/* RIGHT FOOT FORCE */}
+            <ForceChart
+              footData={rightFootProcessed}
+              title="Right Foot Force"
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// Reusable chart component
+// Reusable chart components
 interface FootChartProps {
   footData: FootData[];
   view: AccelView | GyroView;
@@ -358,5 +367,68 @@ const FootChart = ({
     </div>
   );
 };
+
+
+
+interface ForceChartProps {
+  footData: FootData[];
+  title: string;
+}
+
+const ForceChart = ({ footData, title }: ForceChartProps) => {
+  return (
+    <div className="graph-column">
+      {/* Header */}
+      <div className="graph-header flex items-center gap-4">
+        <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
+          {title}
+        </h2>
+      </div>
+
+      {/* Chart */}
+      <ResponsiveContainer width="100%" height={350}>
+        <LineChart
+          data={footData}
+          className="line-chart-container"
+          style={{ backgroundColor: "#fff", borderRadius: 4, padding: 10 }}
+        >
+          <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+          <XAxis
+            dataKey="timestamp"
+            tick={{ fontSize: 12, }} 
+            label={{ value: "Time", position: "insideBottomRight", offset: -5, }}
+          />
+          <YAxis
+            tick={{ fontSize: 12,}}  
+            label={{
+              value: "Force (ADC units)",
+              angle: -90,
+              position: "insideLeft",
+            }}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "rgba(255,255,255,0.9)",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+            }}
+          />
+          <Legend wrapperStyle={{ paddingTop: "10px" }} />
+          <Line
+            type="monotone"
+            dataKey="force"
+            stroke="#1890ff"  
+            dot={false} 
+            strokeWidth={2}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+
+
+
 
 export default App;

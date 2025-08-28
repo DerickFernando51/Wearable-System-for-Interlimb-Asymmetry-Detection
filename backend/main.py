@@ -68,10 +68,12 @@ async def process_data(foot_name, last_timestamp, websocket):
         gyro_y_filt = medfilt(gyro_y_dcb, kernel_size=KERNEL_SIZE)
         gyro_z_filt = medfilt(gyro_z_dcb, kernel_size=KERNEL_SIZE)
 
+   
         # Build payload
         processed_data = [
             {
                 "timestamp": sorted_data[i]["timestamp"],
+                 "force": float(sorted_data[i].get("force", 0)),
                 "accel": {
                     "raw": {"x": float(accel_x[i]), "y": float(accel_y[i]), "z": float(accel_z[i])},
                     "dcb_removed": {"x": float(accel_x_dcb[i]), "y": float(accel_y_dcb[i]), "z": float(accel_z_dcb[i])},
