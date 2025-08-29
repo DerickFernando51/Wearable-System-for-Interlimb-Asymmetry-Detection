@@ -34,7 +34,7 @@ type GyroData = {
 
 type FootData = {
   timestamp: string;
-  force: number;
+  force: Record<ForceView, number>;
   accel: AccelData;
   gyro: GyroData;
 };
@@ -90,6 +90,26 @@ function App() {
   }, []);
 
   // Real-time graphs (WebSocket)
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return; // handle unit tests
+
+  //   const ws = new WebSocket("ws://localhost:8000/ws/imu");
+
+  //   ws.onmessage = (event: MessageEvent) => {
+  //     try {
+  //       const data: WSData = JSON.parse(event.data);
+  //       if (data.leftFoot) setLeftFootProcessed(data.leftFoot);
+  //       if (data.rightFoot) setRightFootProcessed(data.rightFoot);
+  //     } catch (err) {
+  //       console.error("Invalid JSON received:", event.data);
+  //     }
+  //   };
+
+  //   ws.onclose = () => console.log("WebSocket closed");
+
+  //   return () => ws.close();
+  // }, []);
+
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8000/ws/imu");
 
@@ -104,6 +124,7 @@ function App() {
     return () => ws.close();
   }, []);
 
+
   const viewOptions = [
     { value: "raw", label: "Raw Data" },
     { value: "dcb_removed", label: "DC Bias Removed" },
@@ -113,9 +134,13 @@ function App() {
   const getSensorValue = (
     foot: FootData | null,
     sensor: "accel" | "gyro",
+    view: AccelView | GyroView,
     axis: keyof SensorAxis
   ) => {
-    return foot?.[sensor]?.[axis] ?? 0;
+    if (!foot) return 0;
+
+    const data = sensor === "accel" ? foot.accel : foot.gyro;
+    return data[view][axis];
   };
 
   const renderRow = (
@@ -173,15 +198,11 @@ function App() {
                     Accelerometer
                   </td>
                 </tr>
-                {["x", "y", "z"].map((axis) =>
+                {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) =>
                   renderRow(
                     axis.toUpperCase(),
-                    getSensorValue(leftFoot, "accel", axis as keyof SensorAxis),
-                    getSensorValue(
-                      rightFoot,
-                      "accel",
-                      axis as keyof SensorAxis
-                    ),
+                    getSensorValue(leftFoot, "accel", leftAccelView, axis),
+                    getSensorValue(rightFoot, "accel", rightAccelView, axis),
                     "indented",
                     `accel-${axis}`
                   )
@@ -193,11 +214,11 @@ function App() {
                     Angular Velocity
                   </td>
                 </tr>
-                {["x", "y", "z"].map((axis) =>
+                {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) =>
                   renderRow(
                     axis.toUpperCase(),
-                    getSensorValue(leftFoot, "gyro", axis as keyof SensorAxis),
-                    getSensorValue(rightFoot, "gyro", axis as keyof SensorAxis),
+                    getSensorValue(leftFoot, "gyro", leftGyroView, axis),
+                    getSensorValue(rightFoot, "gyro", rightGyroView, axis),
                     "indented",
                     `gyro-${axis}`
                   )
