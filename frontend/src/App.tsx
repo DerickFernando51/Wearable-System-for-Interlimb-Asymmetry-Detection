@@ -52,7 +52,7 @@ function App() {
   const handleStart = () => set(ref(database, "commands/recording"), true);
   const handleStop = () => set(ref(database, "commands/recording"), false);
 
-  // Firebase subscription for latest foot data
+  // Firebase subscription - real time table
   useEffect(() => {
     const leftRef = query(ref(database, "leftFoot"), limitToLast(1));
     const rightRef = query(ref(database, "rightFoot"), limitToLast(1));
@@ -75,10 +75,8 @@ function App() {
     };
   }, []);
 
-  // WebSocket for real-time graphs with rolling window
+  // WebSocket - real-time graphs  
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
     const ws = new WebSocket("ws://localhost:8000/ws/imu");
 
     ws.onmessage = (event: MessageEvent) => {
