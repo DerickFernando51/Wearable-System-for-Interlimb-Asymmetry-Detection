@@ -43,7 +43,8 @@ venv/
 # Firebase / Credentials
 # ======================
 serviceAccountKey.json
-firebase.js
+serviceAccountKey2.json
+firebase.ts
 
 # ======================
 # macOS / Misc
