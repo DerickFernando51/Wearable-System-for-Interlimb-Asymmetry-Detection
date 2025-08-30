@@ -90,40 +90,25 @@ function App() {
   }, []);
 
   // Real-time graphs (WebSocket)
-  // useEffect(() => {
-  //   if (typeof window === "undefined") return; // handle unit tests
-
-  //   const ws = new WebSocket("ws://localhost:8000/ws/imu");
-
-  //   ws.onmessage = (event: MessageEvent) => {
-  //     try {
-  //       const data: WSData = JSON.parse(event.data);
-  //       if (data.leftFoot) setLeftFootProcessed(data.leftFoot);
-  //       if (data.rightFoot) setRightFootProcessed(data.rightFoot);
-  //     } catch (err) {
-  //       console.error("Invalid JSON received:", event.data);
-  //     }
-  //   };
-
-  //   ws.onclose = () => console.log("WebSocket closed");
-
-  //   return () => ws.close();
-  // }, []);
-
   useEffect(() => {
+    if (typeof window === "undefined") return; // handle unit tests
+
     const ws = new WebSocket("ws://localhost:8000/ws/imu");
 
     ws.onmessage = (event: MessageEvent) => {
-      const data: WSData = JSON.parse(event.data);
-      if (data.leftFoot) setLeftFootProcessed(data.leftFoot);
-      if (data.rightFoot) setRightFootProcessed(data.rightFoot);
+      try {
+        const data: WSData = JSON.parse(event.data);
+        if (data.leftFoot) setLeftFootProcessed(data.leftFoot);
+        if (data.rightFoot) setRightFootProcessed(data.rightFoot);
+      } catch (err) {
+        console.error("Invalid JSON received:", event.data);
+      }
     };
 
     ws.onclose = () => console.log("WebSocket closed");
 
     return () => ws.close();
   }, []);
-
 
   const viewOptions = [
     { value: "raw", label: "Raw Data" },
@@ -132,16 +117,17 @@ function App() {
   ];
 
   const getSensorValue = (
-    foot: FootData | null,
-    sensor: "accel" | "gyro",
-    view: AccelView | GyroView,
-    axis: keyof SensorAxis
-  ) => {
-    if (!foot) return 0;
+  foot: FootData | null,
+  sensor: "accel" | "gyro",
+  view: AccelView | GyroView,
+  axis: keyof SensorAxis
+) => {
+  if (!foot) return 0;
 
-    const data = sensor === "accel" ? foot.accel : foot.gyro;
-    return data[view][axis];
-  };
+  const data = sensor === "accel" ? foot.accel : foot.gyro;
+  return data?.[view]?.[axis] ?? 0;
+};
+
 
   const renderRow = (
     label: string,
