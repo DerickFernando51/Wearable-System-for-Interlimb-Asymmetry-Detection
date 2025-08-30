@@ -17,12 +17,21 @@ import "./App.css";
 interface WSData {
   leftFoot?: FootData[];
   rightFoot?: FootData[];
+  asymmetry_index?: number;
 }
 
 type SensorAxis = { x: number; y: number; z: number };
 
-type AccelData = { raw: SensorAxis; dcb_removed: SensorAxis; median_filtered: SensorAxis };
-type GyroData = { raw: SensorAxis; dcb_removed: SensorAxis; median_filtered: SensorAxis };
+type AccelData = {
+  raw: SensorAxis;
+  dcb_removed: SensorAxis;
+  median_filtered: SensorAxis;
+};
+type GyroData = {
+  raw: SensorAxis;
+  dcb_removed: SensorAxis;
+  median_filtered: SensorAxis;
+};
 
 type FootData = {
   timestamp: string;
@@ -48,6 +57,7 @@ function App() {
   const [rightGyroView, setRightGyroView] = useState<GyroView>("raw");
   const [leftForceView, setLeftForceView] = useState<ForceView>("raw");
   const [rightForceView, setRightForceView] = useState<ForceView>("raw");
+  const [asymmetryIndex, setAsymmetryIndex] = useState<number | null>(null);
 
   const handleStart = () => set(ref(database, "commands/recording"), true);
   const handleStop = () => set(ref(database, "commands/recording"), false);
@@ -75,13 +85,16 @@ function App() {
     };
   }, []);
 
-  // WebSocket - real-time graphs  
+  // WebSocket - real-time graphs
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8000/ws/imu");
 
     ws.onmessage = (event: MessageEvent) => {
       try {
         const data: WSData = JSON.parse(event.data);
+        if (data.asymmetry_index !== undefined) {
+          setAsymmetryIndex(data.asymmetry_index);
+        }
         if (data.leftFoot)
           setLeftFootProcessed((prev) => [
             ...prev.slice(-MAX_POINTS + data.leftFoot.length),
@@ -125,7 +138,9 @@ function App() {
   return (
     <div className="container">
       <div className="content">
-        <h1 className="title">Wearable Device for Interlimb Asymmetry Detection</h1>
+        <h1 className="title">
+          Wearable Device for Interlimb Asymmetry Detection
+        </h1>
 
         {/* Table + Buttons */}
         <div className="table-button-container">
@@ -139,10 +154,24 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {renderRow("Timestamp", leftFoot?.timestamp, rightFoot?.timestamp, "", "timestamp")}
-                {renderRow("Force", leftFoot?.force, rightFoot?.force, "", "force")}
+                {renderRow(
+                  "Timestamp",
+                  leftFoot?.timestamp,
+                  rightFoot?.timestamp,
+                  "",
+                  "timestamp"
+                )}
+                {renderRow(
+                  "Force",
+                  leftFoot?.force,
+                  rightFoot?.force,
+                  "",
+                  "force"
+                )}
                 <tr className="section-row">
-                  <td className="section-cell" colSpan={3}>Accelerometer</td>
+                  <td className="section-cell" colSpan={3}>
+                    Accelerometer
+                  </td>
                 </tr>
                 {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) =>
                   renderRow(
@@ -154,7 +183,9 @@ function App() {
                   )
                 )}
                 <tr className="section-row">
-                  <td className="section-cell" colSpan={3}>Angular Velocity</td>
+                  <td className="section-cell" colSpan={3}>
+                    Angular Velocity
+                  </td>
                 </tr>
                 {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) =>
                   renderRow(
@@ -170,24 +201,99 @@ function App() {
           </div>
 
           <div className="button-panel">
-            <button className="control-button start" onClick={handleStart}>Start</button>
-            <button className="control-button stop" onClick={handleStop}>Stop</button>
+            <button className="control-button start" onClick={handleStart}>
+              Start
+            </button>
+            <button className="control-button stop" onClick={handleStop}>
+              Stop
+            </button>
+            {/* Asymmetry Index Display */}
+             <div className="asymmetry-display">
+  <strong>Asymmetry Index:</strong>
+  {asymmetryIndex && typeof asymmetryIndex === "object" ? (
+    <table className="asymmetry-table">
+      <thead>
+        <tr>
+          <th style={{ color: "black" }}>Channel</th>
+          <th style={{ color: "black" }}>Value (%)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(asymmetryIndex).map(([key, value]) => (
+          <tr key={key}>
+            <td
+              className="asymmetry-label"
+              style={{ color: "black", fontWeight: "bold" }}
+            >
+              {key.replace("_", " ").toUpperCase()}
+            </td>
+            <td
+              className="asymmetry-value"
+              style={{ color: "black" }}
+            >
+              {value !== null && value !== undefined
+                ? `${value.toFixed(2)}%`
+                : "-"}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ) : (
+    <span style={{ color: "black" }}>-</span>
+  )}
+</div>
+
           </div>
         </div>
 
         {/* GRAPHS */}
         <div className="graph-section">
           <div className="graph-columns">
-            <MemoizedFootChart footData={leftFootProcessed} view={leftAccelView} setView={setLeftAccelView} title="Left Foot Acceleration" type="accel" />
-            <MemoizedFootChart footData={rightFootProcessed} view={rightAccelView} setView={setRightAccelView} title="Right Foot Acceleration" type="accel" />
+            <MemoizedFootChart
+              footData={leftFootProcessed}
+              view={leftAccelView}
+              setView={setLeftAccelView}
+              title="Left Foot Acceleration"
+              type="accel"
+            />
+            <MemoizedFootChart
+              footData={rightFootProcessed}
+              view={rightAccelView}
+              setView={setRightAccelView}
+              title="Right Foot Acceleration"
+              type="accel"
+            />
           </div>
           <div className="graph-columns">
-            <MemoizedFootChart footData={leftFootProcessed} view={leftGyroView} setView={setLeftGyroView} title="Left Foot Angular Velocity" type="gyro" />
-            <MemoizedFootChart footData={rightFootProcessed} view={rightGyroView} setView={setRightGyroView} title="Right Foot Angular Velocity" type="gyro" />
+            <MemoizedFootChart
+              footData={leftFootProcessed}
+              view={leftGyroView}
+              setView={setLeftGyroView}
+              title="Left Foot Angular Velocity"
+              type="gyro"
+            />
+            <MemoizedFootChart
+              footData={rightFootProcessed}
+              view={rightGyroView}
+              setView={setRightGyroView}
+              title="Right Foot Angular Velocity"
+              type="gyro"
+            />
           </div>
           <div className="graph-columns">
-            <MemoizedForceChart footData={leftFootProcessed} title="Left Foot Force" view={leftForceView} setView={setLeftForceView} />
-            <MemoizedForceChart footData={rightFootProcessed} title="Right Foot Force" view={rightForceView} setView={setRightForceView} />
+            <MemoizedForceChart
+              footData={leftFootProcessed}
+              title="Left Foot Force"
+              view={leftForceView}
+              setView={setLeftForceView}
+            />
+            <MemoizedForceChart
+              footData={rightFootProcessed}
+              title="Right Foot Force"
+              view={rightForceView}
+              setView={setRightForceView}
+            />
           </div>
         </div>
       </div>
@@ -204,7 +310,13 @@ interface FootChartProps {
   type: "accel" | "gyro";
 }
 
-const FootChart = ({ footData, view, setView, title, type }: FootChartProps) => {
+const FootChart = ({
+  footData,
+  view,
+  setView,
+  title,
+  type,
+}: FootChartProps) => {
   const viewOptions = [
     { value: "raw", label: "Raw Data" },
     { value: "dcb_removed", label: "DC Bias Removed" },
@@ -216,37 +328,45 @@ const FootChart = ({ footData, view, setView, title, type }: FootChartProps) => 
     []
   );
 
-  const chart = useMemo(() => (
-    <ResponsiveContainer width="100%" height={350}>
-      <LineChart className="line-chart-container" data={footData}>
-        <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-        <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
-        <YAxis
-          label={{
-            value: type === "accel" ? "Acceleration (m/s²)" : "Angular Velocity (°/s)",
-            angle: -90,
-            position: "insideLeft",
-          }}
-          tick={{ fontSize: 12 }}
-        />
-        <Tooltip />
-        <Legend />
-        {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) => (
-          <Line
-            key={axis}
-            type="monotone"
-            dataKey={(d: FootData) => d[type]?.[view]?.[axis] ?? 0}
-            stroke={axis === "x" ? "#ff4d4f" : axis === "y" ? "#52c41a" : "#1890ff"}
-            name={`${
+  const chart = useMemo(
+    () => (
+      <ResponsiveContainer width="100%" height={350}>
+        <LineChart className="line-chart-container" data={footData}>
+          <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+          <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
+          <YAxis
+            label={{
+              value:
+                type === "accel"
+                  ? "Acceleration (m/s²)"
+                  : "Angular Velocity (°/s)",
+              angle: -90,
+              position: "insideLeft",
+            }}
+            tick={{ fontSize: 12 }}
+          />
+          <Tooltip />
+          <Legend />
+          {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) => (
+            <Line
+              key={axis}
+              type="monotone"
+              dataKey={(d: FootData) => d[type]?.[view]?.[axis] ?? 0}
+              stroke={
+                axis === "x" ? "#ff4d4f" : axis === "y" ? "#52c41a" : "#1890ff"
+              }
+              name={`${
                 type === "accel" ? "Accel" : "Gyro"
               } ${axis.toUpperCase()}`}
-            dot={false}
-            strokeWidth={2}
-          />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
-  ), [footData, view]);
+              dot={false}
+              strokeWidth={2}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    ),
+    [footData, view]
+  );
 
   return (
     <div className="graph-column">
@@ -293,27 +413,40 @@ const ForceChart = ({ footData, title, view, setView }: ForceChartProps) => {
     { value: "median_filtered", label: "Median Filtered" },
   ];
 
-  const handleViewChange = useCallback(debounce((v: ForceView) => setView(v), 100), []);
+  const handleViewChange = useCallback(
+    debounce((v: ForceView) => setView(v), 100),
+    []
+  );
 
-  const chart = useMemo(() => (
-    <ResponsiveContainer width="100%" height={350}>
-      <LineChart className="line-chart-container" data={footData}>
-        <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-        <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
-        <YAxis label={{ value: "Force (ADC Units)", angle: -90, position: "insideLeft" }} tick={{ fontSize: 12 }} />
-        <Tooltip />
-        <Legend />
-        <Line
-          type="monotone"
-          dataKey={(d: FootData) => d.force?.[view] ?? 0}
-          stroke="#1890ff"
-          name={`Force`}
-          dot={false}
-          strokeWidth={2}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  ), [footData, view]);
+  const chart = useMemo(
+    () => (
+      <ResponsiveContainer width="100%" height={350}>
+        <LineChart className="line-chart-container" data={footData}>
+          <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+          <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
+          <YAxis
+            label={{
+              value: "Force (ADC Units)",
+              angle: -90,
+              position: "insideLeft",
+            }}
+            tick={{ fontSize: 12 }}
+          />
+          <Tooltip />
+          <Legend />
+          <Line
+            type="monotone"
+            dataKey={(d: FootData) => d.force?.[view] ?? 0}
+            stroke="#1890ff"
+            name={`Force`}
+            dot={false}
+            strokeWidth={2}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    ),
+    [footData, view]
+  );
 
   return (
     <div className="graph-column">

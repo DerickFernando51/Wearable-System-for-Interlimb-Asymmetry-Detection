@@ -367,3 +367,25 @@ tr.indented td.label {
     width: 100%;
   }
 }
+
+.asymmetry-display {
+  margin-top: 1rem;
+}
+
+.asymmetry-table {
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.asymmetry-table td {
+  padding: 0.25rem 0.5rem;
+}
+
+.asymmetry-label {
+  font-weight: bold;
+}
+
+.asymmetry-value {
+  text-align: right;
+  color: black;
+}

@@ -28,19 +28,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Global variables
+recording = False
+left_foot_buffer = []
+right_foot_buffer = []
+
 async def send_new_data(foot_name, last_timestamp, websocket):
+    global left_foot_buffer, right_foot_buffer
+
     ref = db.reference(foot_name)
     data = ref.order_by_child("timestamp").start_at(last_timestamp or 0).get() or {}
     sorted_data = sorted(data.values(), key=lambda x: x["timestamp"])
-    
-    # Only new points
     new_data = [item for item in sorted_data if last_timestamp is None or item["timestamp"] > last_timestamp]
     if not new_data:
         return last_timestamp
-    
+
     latest_timestamp = new_data[-1]["timestamp"]
 
-    # Process new data
+    # Extract sensor data and apply DC bias removal + median filtering
     accel_x = np.array([item.get("accel", {}).get("x", 0) for item in new_data])
     accel_y = np.array([item.get("accel", {}).get("y", 0) for item in new_data])
     accel_z = np.array([item.get("accel", {}).get("z", 0) for item in new_data])
@@ -67,9 +72,11 @@ async def send_new_data(foot_name, last_timestamp, websocket):
     gyro_z_filt = medfilt(gyro_z_dcb, KERNEL_SIZE)
     force_filt = medfilt(force_dcb, KERNEL_SIZE_FORCE)
 
-    # Prepare payload
-    processed_data = [
-        {
+    processed_data = []
+
+    for i, item in enumerate(new_data):
+        # Prepare full processed structure for frontend
+        pd = {
             "timestamp": item["timestamp"],
             "force": {
                 "raw": float(force[i]),
@@ -87,21 +94,74 @@ async def send_new_data(foot_name, last_timestamp, websocket):
                 "median_filtered": {"x": float(gyro_x_filt[i]), "y": float(gyro_y_filt[i]), "z": float(gyro_z_filt[i])},
             }
         }
-        for i, item in enumerate(new_data)
-    ]
+        processed_data.append(pd)
+
+        # Save median-filtered values for asymmetry calculation
+        buf_item = {
+            "force": float(force_filt[i]),
+            "accel_x": float(accel_x_filt[i]),
+            "accel_y": float(accel_y_filt[i]),
+            "accel_z": float(accel_z_filt[i]),
+            "gyro_x": float(gyro_x_filt[i]),
+            "gyro_y": float(gyro_y_filt[i]),
+            "gyro_z": float(gyro_z_filt[i]),
+        }
+
+        if foot_name == "leftFoot":
+            left_foot_buffer.append(buf_item)
+        else:
+            right_foot_buffer.append(buf_item)
 
     await websocket.send_json({foot_name: processed_data})
     return latest_timestamp
 
+async def calculate_and_send_asymmetry(websocket):
+
+    global left_foot_buffer, right_foot_buffer
+
+    if not left_foot_buffer or not right_foot_buffer:
+        return
+
+    channels = ["force", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"]
+    asymmetry_index = {}
+
+    for ch in channels:
+        left_values = np.array([item[ch] for item in left_foot_buffer])
+        right_values = np.array([item[ch] for item in right_foot_buffer])
+
+        strong = max(np.mean(np.abs(left_values)), np.mean(np.abs(right_values)))
+        weak = min(np.mean(np.abs(left_values)), np.mean(np.abs(right_values)))
+        total = np.mean(np.abs(left_values)) + np.mean(np.abs(right_values))
+        asymmetry_index[ch] = ((strong - weak) / total * 100) if total != 0 else 0
+
+    await websocket.send_json({"asymmetry_index": asymmetry_index})
+
+    # Clear buffers
+    left_foot_buffer.clear()
+    right_foot_buffer.clear()
+
 @app.websocket("/ws/imu")
 async def imu_ws(websocket: WebSocket):
+    global recording
     await websocket.accept()
     last_left_ts = None
     last_right_ts = None
+
     try:
         while True:
+            # Get current recording state
+            recording_state = db.reference("commands/recording").get() or False
+
+            # Calculate asymmetry only when recording stops
+            if not recording_state:
+                await calculate_and_send_asymmetry(websocket)
+                await asyncio.sleep(0.5)
+
+            # Stream new data to frontend
             last_left_ts = await send_new_data("leftFoot", last_left_ts, websocket)
             last_right_ts = await send_new_data("rightFoot", last_right_ts, websocket)
-            await asyncio.sleep(0.2)  
+
+            await asyncio.sleep(0.2)
+
     except WebSocketDisconnect:
         print("Client disconnected")
