@@ -260,6 +260,7 @@ tr.indented td.label {
   border-radius: 8px;
   padding: 10px;
   margin-bottom: 30px;
+  background-color: white;
 }
 
 /* Responsive adjustments */

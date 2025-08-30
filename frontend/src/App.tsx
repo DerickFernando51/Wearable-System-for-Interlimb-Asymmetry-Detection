@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import database from "./firebase.ts";
-import { ref, set, onValue } from "firebase/database";
+import { ref, set, onValue, query, limitToLast } from "firebase/database";
 import {
   LineChart,
   Line,
@@ -11,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { debounce } from "lodash";
 import "./App.css";
 
 interface WSData {
@@ -20,17 +21,8 @@ interface WSData {
 
 type SensorAxis = { x: number; y: number; z: number };
 
-type AccelData = {
-  raw: SensorAxis;
-  dcb_removed: SensorAxis;
-  median_filtered: SensorAxis;
-};
-
-type GyroData = {
-  raw: SensorAxis;
-  dcb_removed: SensorAxis;
-  median_filtered: SensorAxis;
-};
+type AccelData = { raw: SensorAxis; dcb_removed: SensorAxis; median_filtered: SensorAxis };
+type GyroData = { raw: SensorAxis; dcb_removed: SensorAxis; median_filtered: SensorAxis };
 
 type FootData = {
   timestamp: string;
@@ -41,6 +33,9 @@ type FootData = {
 
 type AccelView = keyof AccelData;
 type GyroView = keyof GyroData;
+type ForceView = "raw" | "dcb_removed" | "median_filtered";
+
+const MAX_POINTS = 200;
 
 function App() {
   const [leftFoot, setLeftFoot] = useState<FootData | null>(null);
@@ -54,33 +49,24 @@ function App() {
   const [leftForceView, setLeftForceView] = useState<ForceView>("raw");
   const [rightForceView, setRightForceView] = useState<ForceView>("raw");
 
-  const handleStart = () => {
-    set(ref(database, "commands/recording"), true);
-  };
+  const handleStart = () => set(ref(database, "commands/recording"), true);
+  const handleStop = () => set(ref(database, "commands/recording"), false);
 
-  const handleStop = () => {
-    set(ref(database, "commands/recording"), false);
-  };
-
-  // Real-time table (Firebase subscription)
+  // Firebase subscription for latest foot data
   useEffect(() => {
-    const leftRef = ref(database, "leftFoot");
-    const rightRef = ref(database, "rightFoot");
+    const leftRef = query(ref(database, "leftFoot"), limitToLast(1));
+    const rightRef = query(ref(database, "rightFoot"), limitToLast(1));
 
     const unsubscribeLeft = onValue(leftRef, (snapshot) => {
       const data = snapshot.val() as Record<string, FootData> | null;
-      if (data) {
-        const entries = Object.values(data);
-        setLeftFoot(entries[entries.length - 1]);
-      } else setLeftFoot(null);
+      if (data) setLeftFoot(Object.values(data).pop()!);
+      else setLeftFoot(null);
     });
 
     const unsubscribeRight = onValue(rightRef, (snapshot) => {
       const data = snapshot.val() as Record<string, FootData> | null;
-      if (data) {
-        const entries = Object.values(data);
-        setRightFoot(entries[entries.length - 1]);
-      } else setRightFoot(null);
+      if (data) setRightFoot(Object.values(data).pop()!);
+      else setRightFoot(null);
     });
 
     return () => {
@@ -89,45 +75,40 @@ function App() {
     };
   }, []);
 
-  // Real-time graphs (WebSocket)
+  // WebSocket for real-time graphs with rolling window
   useEffect(() => {
-    if (typeof window === "undefined") return; // handle unit tests
+    if (typeof window === "undefined") return;
 
     const ws = new WebSocket("ws://localhost:8000/ws/imu");
 
     ws.onmessage = (event: MessageEvent) => {
       try {
         const data: WSData = JSON.parse(event.data);
-        if (data.leftFoot) setLeftFootProcessed(data.leftFoot);
-        if (data.rightFoot) setRightFootProcessed(data.rightFoot);
+        if (data.leftFoot)
+          setLeftFootProcessed((prev) => [
+            ...prev.slice(-MAX_POINTS + data.leftFoot.length),
+            ...data.leftFoot,
+          ]);
+        if (data.rightFoot)
+          setRightFootProcessed((prev) => [
+            ...prev.slice(-MAX_POINTS + data.rightFoot.length),
+            ...data.rightFoot,
+          ]);
       } catch (err) {
         console.error("Invalid JSON received:", event.data);
       }
     };
 
     ws.onclose = () => console.log("WebSocket closed");
-
     return () => ws.close();
   }, []);
 
-  const viewOptions = [
-    { value: "raw", label: "Raw Data" },
-    { value: "dcb_removed", label: "DC Bias Removed" },
-    { value: "median_filtered", label: "Median Filtered" },
-  ];
-
   const getSensorValue = (
-  foot: FootData | null,
-  sensor: "accel" | "gyro",
-  view: AccelView | GyroView,
-  axis: keyof SensorAxis
-) => {
-  if (!foot) return 0;
-
-  const data = sensor === "accel" ? foot.accel : foot.gyro;
-  return data?.[view]?.[axis] ?? 0;
-};
-
+    foot: FootData | null,
+    sensor: "accel" | "gyro",
+    view: AccelView | GyroView,
+    axis: keyof SensorAxis
+  ) => (foot ? foot[sensor]?.[view]?.[axis] ?? 0 : 0);
 
   const renderRow = (
     label: string,
@@ -146,9 +127,7 @@ function App() {
   return (
     <div className="container">
       <div className="content">
-        <h1 className="title">
-          Wearable Device for Interlimb Asymmetry Detection
-        </h1>
+        <h1 className="title">Wearable Device for Interlimb Asymmetry Detection</h1>
 
         {/* Table + Buttons */}
         <div className="table-button-container">
@@ -162,27 +141,10 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {/* Timestamp and Force */}
-                {renderRow(
-                  "Timestamp",
-                  leftFoot?.timestamp,
-                  rightFoot?.timestamp,
-                  "",
-                  "timestamp"
-                )}
-                {renderRow(
-                  "Force",
-                  leftFoot?.force,
-                  rightFoot?.force,
-                  "",
-                  "force"
-                )}
-
-                {/* Accelerometer Section */}
-                <tr className="section-row" key="accel-section">
-                  <td className="section-cell" colSpan={3}>
-                    Accelerometer
-                  </td>
+                {renderRow("Timestamp", leftFoot?.timestamp, rightFoot?.timestamp, "", "timestamp")}
+                {renderRow("Force", leftFoot?.force, rightFoot?.force, "", "force")}
+                <tr className="section-row">
+                  <td className="section-cell" colSpan={3}>Accelerometer</td>
                 </tr>
                 {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) =>
                   renderRow(
@@ -193,12 +155,8 @@ function App() {
                     `accel-${axis}`
                   )
                 )}
-
-                {/* Gyroscope Section */}
-                <tr className="section-row" key="gyro-section">
-                  <td className="section-cell" colSpan={3}>
-                    Angular Velocity
-                  </td>
+                <tr className="section-row">
+                  <td className="section-cell" colSpan={3}>Angular Velocity</td>
                 </tr>
                 {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) =>
                   renderRow(
@@ -214,69 +172,24 @@ function App() {
           </div>
 
           <div className="button-panel">
-            <button className="control-button start" onClick={handleStart}>
-              Start
-            </button>
-            <button className="control-button stop" onClick={handleStop}>
-              Stop
-            </button>
+            <button className="control-button start" onClick={handleStart}>Start</button>
+            <button className="control-button stop" onClick={handleStop}>Stop</button>
           </div>
         </div>
 
         {/* GRAPHS */}
         <div className="graph-section">
           <div className="graph-columns">
-            {/* LEFT FOOT ACCEL */}
-            <FootChart
-              footData={leftFootProcessed}
-              view={leftAccelView}
-              setView={setLeftAccelView}
-              title="Left Foot Acceleration"
-              type="accel"
-            />
-            {/* RIGHT FOOT ACCEL */}
-            <FootChart
-              footData={rightFootProcessed}
-              view={rightAccelView}
-              setView={setRightAccelView}
-              title="Right Foot Acceleration"
-              type="accel"
-            />
-          </div>
-
-          <div className="graph-columns">
-            {/* LEFT FOOT GYRO */}
-            <FootChart
-              footData={leftFootProcessed}
-              view={leftGyroView}
-              setView={setLeftGyroView}
-              title="Left Foot Angular Velocity"
-              type="gyro"
-            />
-            {/* RIGHT FOOT GYRO */}
-            <FootChart
-              footData={rightFootProcessed}
-              view={rightGyroView}
-              setView={setRightGyroView}
-              title="Right Foot Angular Velocity"
-              type="gyro"
-            />
+            <MemoizedFootChart footData={leftFootProcessed} view={leftAccelView} setView={setLeftAccelView} title="Left Foot Acceleration" type="accel" />
+            <MemoizedFootChart footData={rightFootProcessed} view={rightAccelView} setView={setRightAccelView} title="Right Foot Acceleration" type="accel" />
           </div>
           <div className="graph-columns">
-            {/* LEFT FOOT FORCE */}
-            <ForceChart
-              footData={leftFootProcessed}
-              title="Left Foot Force"
-              view={leftForceView}
-              setView={setLeftForceView}
-            />
-            {/* RIGHT FOOT FORCE */}
-            <ForceChart
-              footData={rightFootProcessed}
-              title="Right Foot Force"
-              view={rightForceView}
-              setView={setRightForceView}
-            />
+            <MemoizedFootChart footData={leftFootProcessed} view={leftGyroView} setView={setLeftGyroView} title="Left Foot Angular Velocity" type="gyro" />
+            <MemoizedFootChart footData={rightFootProcessed} view={rightGyroView} setView={setRightGyroView} title="Right Foot Angular Velocity" type="gyro" />
+          </div>
+          <div className="graph-columns">
+            <MemoizedForceChart footData={leftFootProcessed} title="Left Foot Force" view={leftForceView} setView={setLeftForceView} />
+            <MemoizedForceChart footData={rightFootProcessed} title="Right Foot Force" view={rightForceView} setView={setRightForceView} />
           </div>
         </div>
       </div>
@@ -284,7 +197,7 @@ function App() {
   );
 }
 
-// Reusable chart components
+// ---------------- FOOT CHART ----------------
 interface FootChartProps {
   footData: FootData[];
   view: AccelView | GyroView;
@@ -293,29 +206,54 @@ interface FootChartProps {
   type: "accel" | "gyro";
 }
 
-const FootChart = ({
-  footData,
-  view,
-  setView,
-  title,
-  type,
-}: FootChartProps) => {
+const FootChart = ({ footData, view, setView, title, type }: FootChartProps) => {
   const viewOptions = [
     { value: "raw", label: "Raw Data" },
     { value: "dcb_removed", label: "DC Bias Removed" },
     { value: "median_filtered", label: "Median Filtered" },
   ];
 
-  const getValue = (d: FootData, axis: keyof SensorAxis) => {
-    return d[type]?.[view]?.[axis] ?? 0;
-  };
+  const handleViewChange = useCallback(
+    debounce((newView: AccelView | GyroView) => setView(newView), 100),
+    []
+  );
+
+  const chart = useMemo(() => (
+    <ResponsiveContainer width="100%" height={350}>
+      <LineChart className="line-chart-container" data={footData}>
+        <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+        <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
+        <YAxis
+          label={{
+            value: type === "accel" ? "Acceleration (m/s²)" : "Angular Velocity (°/s)",
+            angle: -90,
+            position: "insideLeft",
+          }}
+          tick={{ fontSize: 12 }}
+        />
+        <Tooltip />
+        <Legend />
+        {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) => (
+          <Line
+            key={axis}
+            type="monotone"
+            dataKey={(d: FootData) => d[type]?.[view]?.[axis] ?? 0}
+            stroke={axis === "x" ? "#ff4d4f" : axis === "y" ? "#52c41a" : "#1890ff"}
+            name={`${
+                type === "accel" ? "Accel" : "Gyro"
+              } ${axis.toUpperCase()}`}
+            dot={false}
+            strokeWidth={2}
+          />
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
+  ), [footData, view]);
 
   return (
     <div className="graph-column">
       <div className="graph-header flex items-center gap-4">
-        <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
-          {title}
-        </h2>
+        <h2 className="graph-title">{title}</h2>
         <div className="graph-controls">
           <div className="select-wrapper relative">
             <select
@@ -335,57 +273,14 @@ const FootChart = ({
           </div>
         </div>
       </div>
-
-      <ResponsiveContainer width="100%" height={350}>
-        <LineChart data={footData} className="line-chart-container">
-          <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-          <XAxis
-            dataKey="timestamp"
-            tick={{ fontSize: 12 }}
-            label={{ value: "Time", position: "insideBottomRight", offset: -5 }}
-          />
-          <YAxis
-            label={{
-              value:
-                type === "accel"
-                  ? "Acceleration (m/s²)"
-                  : "Angular Velocity (°/s)",
-              angle: -90,
-              position: "insideLeft",
-            }}
-            tick={{ fontSize: 12 }}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "rgba(255,255,255,0.9)",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-            }}
-          />
-          <Legend wrapperStyle={{ paddingTop: "10px" }} />
-          {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) => (
-            <Line
-              key={`${title}-${axis}`}
-              type="monotone"
-              dataKey={(d: FootData) => getValue(d, axis)}
-              stroke={
-                axis === "x" ? "#ff4d4f" : axis === "y" ? "#52c41a" : "#1890ff"
-              }
-              name={`${
-                type === "accel" ? "Accel" : "Gyro"
-              } ${axis.toUpperCase()}`}
-              dot={false}
-              strokeWidth={2}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+      {chart}
     </div>
   );
 };
 
-type ForceView = "raw" | "dcb_removed" | "median_filtered";
+const MemoizedFootChart = React.memo(FootChart);
 
+// ---------------- FORCE CHART ----------------
 interface ForceChartProps {
   footData: FootData[];
   title: string;
@@ -400,21 +295,37 @@ const ForceChart = ({ footData, title, view, setView }: ForceChartProps) => {
     { value: "median_filtered", label: "Median Filtered" },
   ];
 
-  const getValue = (d: FootData) => {
-    return d.force?.[view] ?? 0;
-  };
+  const handleViewChange = useCallback(debounce((v: ForceView) => setView(v), 100), []);
+
+  const chart = useMemo(() => (
+    <ResponsiveContainer width="100%" height={350}>
+      <LineChart className="line-chart-container" data={footData}>
+        <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+        <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
+        <YAxis label={{ value: "Force (ADC Units)", angle: -90, position: "insideLeft" }} tick={{ fontSize: 12 }} />
+        <Tooltip />
+        <Legend />
+        <Line
+          type="monotone"
+          dataKey={(d: FootData) => d.force?.[view] ?? 0}
+          stroke="#1890ff"
+          name={`Force`}
+          dot={false}
+          strokeWidth={2}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  ), [footData, view]);
 
   return (
     <div className="graph-column">
       <div className="graph-header flex items-center gap-4">
-        <h2 className="graph-title text-lg font-semibold whitespace-nowrap">
-          {title}
-        </h2>
+        <h2 className="graph-title">{title}</h2>
         <div className="graph-controls">
           <div className="select-wrapper relative">
             <select
               value={view}
-              onChange={(e) => setView(e.target.value as ForceView)}
+              onChange={(e) => setView(e.target.value as AccelView | GyroView)}
               className="view-select border rounded px-2 py-1"
             >
               {viewOptions.map((option) => (
@@ -429,43 +340,11 @@ const ForceChart = ({ footData, title, view, setView }: ForceChartProps) => {
           </div>
         </div>
       </div>
-
-      <ResponsiveContainer width="100%" height={350}>
-        <LineChart data={footData} className="line-chart-container">
-          <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-          <XAxis
-            dataKey="timestamp"
-            tick={{ fontSize: 12 }}
-            label={{ value: "Time", position: "insideBottomRight", offset: -5 }}
-          />
-          <YAxis
-            label={{
-              value: "Force (N)", // adjust unit if needed
-              angle: -90,
-              position: "insideLeft",
-            }}
-            tick={{ fontSize: 12 }}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "rgba(255,255,255,0.9)",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-            }}
-          />
-          <Legend wrapperStyle={{ paddingTop: "10px" }} />
-          <Line
-            type="monotone"
-            dataKey={getValue}
-            stroke="#1890ff"
-            name={`Force (${viewOptions.find((o) => o.value === view)?.label})`}
-            dot={false}
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      {chart}
     </div>
   );
 };
+
+const MemoizedForceChart = React.memo(ForceChart);
 
 export default App;
