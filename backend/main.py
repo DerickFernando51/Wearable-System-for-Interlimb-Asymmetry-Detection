@@ -115,7 +115,7 @@ async def send_new_data(foot_name, last_timestamp, websocket):
     await websocket.send_json({foot_name: processed_data})
     return latest_timestamp
 
-async def calculate_and_send_asymmetry(websocket):
+async def calculate_asymmetry_index(websocket):
 
     global left_foot_buffer, right_foot_buffer
 
@@ -154,7 +154,7 @@ async def imu_ws(websocket: WebSocket):
 
             # Calculate asymmetry only when recording stops
             if not recording_state:
-                await calculate_and_send_asymmetry(websocket)
+                await calculate_asymmetry_index(websocket)
                 await asyncio.sleep(0.5)
 
             # Stream new data to frontend
