@@ -58,6 +58,8 @@ function App() {
   const [leftForceView, setLeftForceView] = useState<ForceView>("raw");
   const [rightForceView, setRightForceView] = useState<ForceView>("raw");
   const [asymmetryIndex, setAsymmetryIndex] = useState<number | null>(null);
+  const latestLeft = leftFootProcessed.at(-1) ?? null;
+  const latestRight = rightFootProcessed.at(-1) ?? null;
 
   const handleStart = () => set(ref(database, "commands/recording"), true);
   const handleStop = () => set(ref(database, "commands/recording"), false);
@@ -156,15 +158,15 @@ function App() {
               <tbody>
                 {renderRow(
                   "Timestamp",
-                  leftFoot?.timestamp,
-                  rightFoot?.timestamp,
+                  latestLeft?.timestamp,
+                  latestRight?.timestamp,
                   "",
                   "timestamp"
                 )}
                 {renderRow(
                   "Force",
-                  leftFoot?.force,
-                  rightFoot?.force,
+                  latestLeft?.force[leftForceView],
+                  latestRight?.force[rightForceView],
                   "",
                   "force"
                 )}
@@ -176,8 +178,8 @@ function App() {
                 {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) =>
                   renderRow(
                     axis.toUpperCase(),
-                    getSensorValue(leftFoot, "accel", leftAccelView, axis),
-                    getSensorValue(rightFoot, "accel", rightAccelView, axis),
+                    getSensorValue(latestLeft, "accel", leftAccelView, axis),
+                    getSensorValue(latestRight, "accel", rightAccelView, axis),
                     "indented",
                     `accel-${axis}`
                   )
@@ -190,8 +192,8 @@ function App() {
                 {(["x", "y", "z"] as (keyof SensorAxis)[]).map((axis) =>
                   renderRow(
                     axis.toUpperCase(),
-                    getSensorValue(leftFoot, "gyro", leftGyroView, axis),
-                    getSensorValue(rightFoot, "gyro", rightGyroView, axis),
+                    getSensorValue(latestLeft, "gyro", leftGyroView, axis),
+                    getSensorValue(latestRight, "gyro", rightGyroView, axis),
                     "indented",
                     `gyro-${axis}`
                   )
@@ -208,42 +210,41 @@ function App() {
               Stop
             </button>
             {/* Asymmetry Index Display */}
-             <div className="asymmetry-display">
-  <strong>Asymmetry Index:</strong>
-  {asymmetryIndex && typeof asymmetryIndex === "object" ? (
-    <table className="asymmetry-table">
-      <thead>
-        <tr>
-          <th style={{ color: "black" }}>Channel</th>
-          <th style={{ color: "black" }}>Value (%)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {Object.entries(asymmetryIndex).map(([key, value]) => (
-          <tr key={key}>
-            <td
-              className="asymmetry-label"
-              style={{ color: "black", fontWeight: "bold" }}
-            >
-              {key.replace("_", " ").toUpperCase()}
-            </td>
-            <td
-              className="asymmetry-value"
-              style={{ color: "black" }}
-            >
-              {value !== null && value !== undefined
-                ? `${value.toFixed(2)}%`
-                : "-"}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  ) : (
-    <span style={{ color: "black" }}>-</span>
-  )}
-</div>
-
+            <div className="asymmetry-display">
+              <strong>Asymmetry Index:</strong>
+              {asymmetryIndex && typeof asymmetryIndex === "object" ? (
+                <table className="asymmetry-table">
+                  <thead>
+                    <tr>
+                      <th style={{ color: "black" }}>Channel</th>
+                      <th style={{ color: "black" }}>Value (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(asymmetryIndex).map(([key, value]) => (
+                      <tr key={key}>
+                        <td
+                          className="asymmetry-label"
+                          style={{ color: "black", fontWeight: "bold" }}
+                        >
+                          {key.replace("_", " ").toUpperCase()}
+                        </td>
+                        <td
+                          className="asymmetry-value"
+                          style={{ color: "black" }}
+                        >
+                          {value !== null && value !== undefined
+                            ? `${value.toFixed(2)}%`
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <span style={{ color: "black" }}>-</span>
+              )}
+            </div>
           </div>
         </div>
 
