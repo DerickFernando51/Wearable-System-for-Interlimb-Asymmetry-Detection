@@ -13,6 +13,8 @@ import {
 } from "recharts";
 import { debounce } from "lodash";
 import "./App.css";
+import ControlButtons from "./components/ControlButtons";
+
 
 interface WSData {
   leftFoot?: FootData[];
@@ -203,12 +205,7 @@ function App() {
           </div>
 
           <div className="button-panel">
-            <button className="control-button start" onClick={handleStart}>
-              Start
-            </button>
-            <button className="control-button stop" onClick={handleStop}>
-              Stop
-            </button>
+             <ControlButtons/>
             {/* Asymmetry Index Display */}
             <div className="asymmetry-display">
               <strong>Asymmetry Index:</strong>

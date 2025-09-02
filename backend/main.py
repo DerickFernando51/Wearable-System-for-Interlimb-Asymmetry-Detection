@@ -129,9 +129,9 @@ async def calculate_asymmetry_index(websocket):
         left_values = np.array([item[ch] for item in left_foot_buffer])
         right_values = np.array([item[ch] for item in right_foot_buffer])
 
-        strong = max(np.mean(np.abs(left_values)), np.mean(np.abs(right_values)))
-        weak = min(np.mean(np.abs(left_values)), np.mean(np.abs(right_values)))
-        total = np.mean(np.abs(left_values)) + np.mean(np.abs(right_values))
+        strong = max(np.median(np.abs(left_values)), np.median(np.abs(right_values)))
+        weak = min(np.median(np.abs(left_values)), np.median(np.abs(right_values)))
+        total = np.median(np.abs(left_values)) + np.median(np.abs(right_values))
         asymmetry_index[ch] = ((strong - weak) / total * 100) if total != 0 else 0
 
     await websocket.send_json({"asymmetry_index": asymmetry_index})
