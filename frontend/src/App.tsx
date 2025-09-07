@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import HomePage from "./pages/HomePage";
-import TablePage from "./pages/TablePage";
 import GraphsPage from "./pages/GraphsPage";
 
 function App() {
 
-  const [currentPage, setCurrentPage] = useState<"home" | "table" | "graphs">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "graphs">("home");
 
   return (
     <div className="container">
@@ -18,12 +17,6 @@ function App() {
           Home
         </button>
         <button
-          className={currentPage === "table" ? "active" : ""}
-          onClick={() => setCurrentPage("table")}
-        >
-          Table
-        </button>
-        <button
           className={currentPage === "graphs" ? "active" : ""}
           onClick={() => setCurrentPage("graphs")}
         >
@@ -34,7 +27,6 @@ function App() {
       {/* Page Content */}
       <main className="content">
         {currentPage === "home" && <HomePage />}
-        {currentPage === "table" && <TablePage />}
         {currentPage === "graphs" && <GraphsPage />}
       </main>
     </div>

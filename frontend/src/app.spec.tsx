@@ -7,7 +7,7 @@ describe("App Component", () => {
   it("renders the heading", () => {
     render(<App />);
     const h1 = screen.getByText(
-      /Wearable Device for Interlimb Asymmetry Detection/i
+      /Wearable System for Interlimb Asymmetry Detection/i
     );
     expect(h1).toBeInTheDocument();
   });
