@@ -76,7 +76,7 @@ function Dashboard() {
     value: total === 0 ? 0 : (entry.value / total) * 100,
   }));
 
-  const COLORS = ["#FA8C16", "#00C49F", "#FFBB28"]; 
+  const COLORS = ["#FA8C16", "#00C49F", "#FFBB28"];
 
   return (
     <div className="dashboard-container">
@@ -132,116 +132,119 @@ function Dashboard() {
         {/* Right Column: Realtime Data */}
         <div className="right-column">
           <div className="dashboard-card wide-card">
-           <div className="realtime-header">
-  <h2>Realtime Data</h2>
+            <div className="realtime-header">
+              <h2>Realtime Data</h2>
 
-  <div className="view-toggle-buttons">
-    <button
-      className={activeView === "table" ? "active" : ""}
-      onClick={() => setActiveView("table")}
-    >
-      Table
-    </button>
-    <button
-      className={activeView === "graphs" ? "active" : ""}
-      onClick={() => setActiveView("graphs")}
-    >
-      Graphs
-    </button>
-  </div>
-</div>
+              <div className="view-toggle-buttons">
+                <button
+                  className={activeView === "table" ? "active" : ""}
+                  onClick={() => setActiveView("table")}
+                >
+                  Table
+                </button>
+                <button
+                  className={activeView === "graphs" ? "active" : ""}
+                  onClick={() => setActiveView("graphs")}
+                >
+                  Graphs
+                </button>
+              </div>
+            </div>
+            <div className="scrollable">
+              {activeView === "table" ? (
+                <div className="table-wrapper">{/* table content */}</div>
+              ) : (
+                 
+                  <GraphsPanel />
+                 
+              )}
 
+              {/* Conditional rendering */}
 
-            {activeView === "table" ? (
-              <div className="table-wrapper">{/* table content */}</div>
-            ) : (
-              <GraphsPanel />
-            )}
-
-            {/* Conditional rendering */}
-            {activeView === "table" ? (
-              <div className="table-wrapper">
-                <table className="data-table">
-                  <thead>
-                    <tr className="table-header">
-                      <th className="header-cell rounded-left">Data</th>
-                      <th className="header-cell">Left Foot</th>
-                      <th className="header-cell rounded-right">Right Foot</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {renderRow(
-                      "Timestamp",
-                      latestLeft?.timestamp ?? "-",
-                      latestRight?.timestamp ?? "-"
-                    )}
-                    {renderRow(
-                      "Force",
-                      getSensorValue(
-                        latestLeft,
-                        "force",
-                        uiState.leftForceView
-                      ),
-                      getSensorValue(
-                        latestRight,
-                        "force",
-                        uiState.rightForceView
-                      )
-                    )}
-
-                    <tr className="section-row">
-                      <td className="section-cell" colSpan={3}>
-                        Accelerometer
-                      </td>
-                    </tr>
-                    {(["x", "y", "z"] as const).map((axis) =>
-                      renderRow(
-                        axis.toUpperCase(),
+              {activeView === "table" ? (
+                <div className="table-wrapper">
+                  <table className="data-table">
+                    <thead>
+                      <tr className="table-header">
+                        <th className="header-cell rounded-left">Data</th>
+                        <th className="header-cell">Left Foot</th>
+                        <th className="header-cell rounded-right">
+                          Right Foot
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {renderRow(
+                        "Timestamp",
+                        latestLeft?.timestamp ?? "-",
+                        latestRight?.timestamp ?? "-"
+                      )}
+                      {renderRow(
+                        "Force",
                         getSensorValue(
                           latestLeft,
-                          "accel",
-                          uiState.leftAccelView,
-                          axis
+                          "force",
+                          uiState.leftForceView
                         ),
                         getSensorValue(
                           latestRight,
-                          "accel",
-                          uiState.rightAccelView,
-                          axis
+                          "force",
+                          uiState.rightForceView
                         )
-                      )
-                    )}
+                      )}
 
-                    <tr className="section-row">
-                      <td className="section-cell" colSpan={3}>
-                        Angular Velocity
-                      </td>
-                    </tr>
-                    {(["x", "y", "z"] as const).map((axis) =>
-                      renderRow(
-                        axis.toUpperCase(),
-                        getSensorValue(
-                          latestLeft,
-                          "gyro",
-                          uiState.leftGyroView,
-                          axis
-                        ),
-                        getSensorValue(
-                          latestRight,
-                          "gyro",
-                          uiState.rightGyroView,
-                          axis
+                      <tr className="section-row">
+                        <td className="section-cell" colSpan={3}>
+                          Accelerometer
+                        </td>
+                      </tr>
+                      {(["x", "y", "z"] as const).map((axis) =>
+                        renderRow(
+                          axis.toUpperCase(),
+                          getSensorValue(
+                            latestLeft,
+                            "accel",
+                            uiState.leftAccelView,
+                            axis
+                          ),
+                          getSensorValue(
+                            latestRight,
+                            "accel",
+                            uiState.rightAccelView,
+                            axis
+                          )
                         )
-                      )
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="graphs-wrapper">
-                
-              </div>
-            )}
+                      )}
+
+                      <tr className="section-row">
+                        <td className="section-cell" colSpan={3}>
+                          Angular Velocity
+                        </td>
+                      </tr>
+                      {(["x", "y", "z"] as const).map((axis) =>
+                        renderRow(
+                          axis.toUpperCase(),
+                          getSensorValue(
+                            latestLeft,
+                            "gyro",
+                            uiState.leftGyroView,
+                            axis
+                          ),
+                          getSensorValue(
+                            latestRight,
+                            "gyro",
+                            uiState.rightGyroView,
+                            axis
+                          )
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="graphs-wrapper"></div>
+              )}
+            </div>
           </div>
         </div>
       </div>

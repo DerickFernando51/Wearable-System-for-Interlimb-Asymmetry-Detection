@@ -218,11 +218,19 @@ tr.indented td.label {
 .graph-container {
   display: flex;
   justify-content: center;
-  margin-top: 4rem;
+  margin-top: 1rem;
   gap: 30px;  
   width: 100%;
   padding: 10px;
   box-sizing: border-box;
+}
+
+.graphs-wrapper {
+  background: white;
+  border: 1px solid #cbd5e1; /* gray-300 */
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.1); /* blue-500 shadow */
+  overflow-x: auto;
 }
 
 .graph-item {
@@ -473,8 +481,14 @@ tr.indented td.label {
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  max-height: 625px; 
+  max-height: 620px; 
   overflow-y: auto; /* scrollable */
+}
+
+.scrollable {
+  flex: 1 1 auto; /* fills remaining space */
+  overflow-y: auto; /* only this area scrolls */
+  padding-right: 8px; /* optional: space for scrollbar */
 }
 
 .wide-card {
@@ -524,11 +538,27 @@ tr.indented td.label {
 }  
 
 
+ .dashboard-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 16px;
+  max-height: 625px; 
+}
+
 .realtime-header {
+  flex: 0 0 auto;  
   display: flex;
   align-items: center;
-  justify-content: space-between; /* h2 on left, buttons on right */
-  margin-bottom: 1rem;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.scrollable-content {
+  flex: 1 1 auto;  
+  overflow-y: auto; 
+  padding-right: 8px;  
 }
 
 .view-toggle-buttons {
@@ -557,6 +587,12 @@ tr.indented td.label {
   border-color: #1890ff;
   font-weight: 500;
 }
+
+ 
+
+
+
+
 
 
 
