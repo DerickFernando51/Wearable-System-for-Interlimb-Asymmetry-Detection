@@ -317,7 +317,7 @@ tr.indented td.label {
 .select-wrapper {
   position: relative;
   display: inline-block;
-  width: 200px;
+  width: 150px;
 }
 
 .view-select {
@@ -453,14 +453,13 @@ tr.indented td.label {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem;
   min-height: 100vh;
   
 }
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 0.5fr 2fr; /* left narrow, right wider */
+  grid-template-columns: 1fr 3fr; /* left narrow, right wider */
   gap: 2rem;
   width: 100%;
   max-width: 1400px;
@@ -478,11 +477,13 @@ tr.indented td.label {
   flex-direction: column;
 }
 
-.dashboard-card {
+ .dashboard-card {
   background: #fff; /* white card */
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  max-height: 625px; 
+  overflow-y: auto; /* scrollable */
 }
 
 .wide-card {
@@ -530,4 +531,6 @@ tr.indented td.label {
   font-weight: bold;
   color:  #4169E1;
 }  
+
+
 

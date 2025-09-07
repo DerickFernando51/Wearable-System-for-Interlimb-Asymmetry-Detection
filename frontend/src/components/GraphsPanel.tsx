@@ -1,7 +1,7 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
-import { MemoizedFootChart, MemoizedForceChart } from "../components/Charts";
+import { MemoizedFootChart, MemoizedForceChart } from "./Charts";
 import {
   setLeftAccelView,
   setRightAccelView,
@@ -11,7 +11,7 @@ import {
   setRightForceView,
 } from "../slices/uiSlice";
 
-function GraphsPage() {
+const GraphsPanel: React.FC = () => {
   const dispatch = useDispatch();
   const footDataState = useSelector((state: RootState) => state.footData);
   const uiState = useSelector((state: RootState) => state.ui);
@@ -23,7 +23,11 @@ function GraphsPage() {
           footData={footDataState.leftFoot}
           view={uiState.leftAccelView}
           setView={(v) =>
-            dispatch(setLeftAccelView(typeof v === "function" ? v(uiState.leftAccelView) : v))
+            dispatch(
+              setLeftAccelView(
+                typeof v === "function" ? v(uiState.leftAccelView) : v
+              )
+            )
           }
           title="Left Foot Acceleration"
           type="accel"
@@ -32,7 +36,11 @@ function GraphsPage() {
           footData={footDataState.rightFoot}
           view={uiState.rightAccelView}
           setView={(v) =>
-            dispatch(setRightAccelView(typeof v === "function" ? v(uiState.rightAccelView) : v))
+            dispatch(
+              setRightAccelView(
+                typeof v === "function" ? v(uiState.rightAccelView) : v
+              )
+            )
           }
           title="Right Foot Acceleration"
           type="accel"
@@ -44,7 +52,11 @@ function GraphsPage() {
           footData={footDataState.leftFoot}
           view={uiState.leftGyroView}
           setView={(v) =>
-            dispatch(setLeftGyroView(typeof v === "function" ? v(uiState.leftGyroView) : v))
+            dispatch(
+              setLeftGyroView(
+                typeof v === "function" ? v(uiState.leftGyroView) : v
+              )
+            )
           }
           title="Left Foot Angular Velocity"
           type="gyro"
@@ -53,7 +65,11 @@ function GraphsPage() {
           footData={footDataState.rightFoot}
           view={uiState.rightGyroView}
           setView={(v) =>
-            dispatch(setRightGyroView(typeof v === "function" ? v(uiState.rightGyroView) : v))
+            dispatch(
+              setRightGyroView(
+                typeof v === "function" ? v(uiState.rightGyroView) : v
+              )
+            )
           }
           title="Right Foot Angular Velocity"
           type="gyro"
@@ -76,6 +92,6 @@ function GraphsPage() {
       </div>
     </div>
   );
-}
+};
 
-export default GraphsPage;
+export default GraphsPanel;

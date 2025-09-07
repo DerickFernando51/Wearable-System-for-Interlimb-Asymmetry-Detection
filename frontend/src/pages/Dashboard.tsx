@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
 import ControlButtons from "../components/ControlButtons";
@@ -11,14 +11,17 @@ import {
 } from "../slices/footDataSlice";
 import type { FootData, AccelData, GyroData, SensorAxis } from "../types";
 import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
+import GraphsPanel from "../components/GraphsPanel";
 
-function HomePage() {
+function Dashboard() {
   const dispatch = useDispatch();
   const { leftFootProcessed, rightFootProcessed, asymmetryIndex } =
     useFootData();
   const { startRecording, stopRecording } = useRecording();
   const footDataState = useSelector((state: RootState) => state.footData);
   const uiState = useSelector((state: RootState) => state.ui);
+
+  const [activeView, setActiveView] = useState<"table" | "graphs">("table");
 
   // Update Redux store when foot data changes
   React.useEffect(() => {
@@ -46,13 +49,9 @@ function HomePage() {
   ) => {
     if (!foot) return 0;
     const data = foot[sensor as keyof FootData] as any;
-
     if (!data) return 0;
-
-    // Force data might just be a number
     if (sensor === "force")
       return typeof data === "number" ? data : data[view as string] ?? 0;
-
     if (!view || !axis) return 0;
     return data[view]?.[axis] ?? 0;
   };
@@ -71,16 +70,13 @@ function HomePage() {
     { name: "Force", value: footDataState.asymmetryIndex?.force ?? 0 },
   ];
 
-  // Compute total for percentages
   const total = channelValues.reduce((sum, entry) => sum + entry.value, 0);
-
-  // Convert to percentages for pie chart
   const pieData = channelValues.map((entry) => ({
     name: entry.name,
     value: total === 0 ? 0 : (entry.value / total) * 100,
   }));
 
-  const COLORS = ["#FA8C16", "#00C49F", "#FFBB28"];
+  const COLORS = ["#FA8C16", "#00C49F", "#FFBB28"]; 
 
   return (
     <div className="dashboard-container">
@@ -91,13 +87,11 @@ function HomePage() {
       <div className="dashboard-grid">
         {/* Left Column */}
         <div className="left-column">
-          {/* Controls */}
           <div className="dashboard-card">
             <h2>Controls</h2>
             <ControlButtons onStart={startRecording} onStop={stopRecording} />
           </div>
 
-          {/* Asymmetry Index */}
           <div className="dashboard-card">
             <h2>Asymmetry Index</h2>
             <div className="composite-score-container">
@@ -106,8 +100,12 @@ function HomePage() {
               </span>
               <span className="composite-score-value">10%</span>
             </div>
+            <div className="composite-score-container">
+              <span className="composite-score-label">Stronger Limb:</span>
+              <span className="composite-score-label">Left</span>
+            </div>
 
-            <PieChart width={400} height={250}>
+            <PieChart width={400} height={225}>
               <Pie
                 data={pieData}
                 cx="50%"
@@ -116,7 +114,7 @@ function HomePage() {
                 outerRadius={80}
                 paddingAngle={5}
                 dataKey="value"
-                label={({  value }) => `${value.toFixed(1)}%`}
+                label={({ value }) => `${value.toFixed(1)}%`}
               >
                 {pieData.map((entry, index) => (
                   <Cell
@@ -135,75 +133,113 @@ function HomePage() {
         <div className="right-column">
           <div className="dashboard-card wide-card">
             <h2>Realtime Data</h2>
-            <div className="table-wrapper">
-              <table className="data-table">
-                <thead>
-                  <tr className="table-header">
-                    <th className="header-cell rounded-left">Data</th>
-                    <th className="header-cell">Left Foot</th>
-                    <th className="header-cell rounded-right">Right Foot</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {renderRow(
-                    "Timestamp",
-                    latestLeft?.timestamp ?? "-",
-                    latestRight?.timestamp ?? "-"
-                  )}
-                  {renderRow(
-                    "Force",
-                    getSensorValue(latestLeft, "force", uiState.leftForceView),
-                    getSensorValue(latestRight, "force", uiState.rightForceView)
-                  )}
 
-                  <tr className="section-row">
-                    <td className="section-cell" colSpan={3}>
-                      Accelerometer
-                    </td>
-                  </tr>
-                  {(["x", "y", "z"] as const).map((axis) =>
-                    renderRow(
-                      axis.toUpperCase(),
-                      getSensorValue(
-                        latestLeft,
-                        "accel",
-                        uiState.leftAccelView,
-                        axis
-                      ),
-                      getSensorValue(
-                        latestRight,
-                        "accel",
-                        uiState.rightAccelView,
-                        axis
-                      )
-                    )
-                  )}
-
-                  <tr className="section-row">
-                    <td className="section-cell" colSpan={3}>
-                      Angular Velocity
-                    </td>
-                  </tr>
-                  {(["x", "y", "z"] as const).map((axis) =>
-                    renderRow(
-                      axis.toUpperCase(),
-                      getSensorValue(
-                        latestLeft,
-                        "gyro",
-                        uiState.leftGyroView,
-                        axis
-                      ),
-                      getSensorValue(
-                        latestRight,
-                        "gyro",
-                        uiState.rightGyroView,
-                        axis
-                      )
-                    )
-                  )}
-                </tbody>
-              </table>
+            {/* Tabs */}
+            <div className="view-toggle-buttons">
+              <button
+                className={activeView === "table" ? "active" : ""}
+                onClick={() => setActiveView("table")}
+              >
+                Table
+              </button>
+              <button
+                className={activeView === "graphs" ? "active" : ""}
+                onClick={() => setActiveView("graphs")}
+              >
+                Graphs
+              </button>
             </div>
+
+            {activeView === "table" ? (
+              <div className="table-wrapper">{/* table content */}</div>
+            ) : (
+              <GraphsPanel />
+            )}
+
+            {/* Conditional rendering */}
+            {activeView === "table" ? (
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr className="table-header">
+                      <th className="header-cell rounded-left">Data</th>
+                      <th className="header-cell">Left Foot</th>
+                      <th className="header-cell rounded-right">Right Foot</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {renderRow(
+                      "Timestamp",
+                      latestLeft?.timestamp ?? "-",
+                      latestRight?.timestamp ?? "-"
+                    )}
+                    {renderRow(
+                      "Force",
+                      getSensorValue(
+                        latestLeft,
+                        "force",
+                        uiState.leftForceView
+                      ),
+                      getSensorValue(
+                        latestRight,
+                        "force",
+                        uiState.rightForceView
+                      )
+                    )}
+
+                    <tr className="section-row">
+                      <td className="section-cell" colSpan={3}>
+                        Accelerometer
+                      </td>
+                    </tr>
+                    {(["x", "y", "z"] as const).map((axis) =>
+                      renderRow(
+                        axis.toUpperCase(),
+                        getSensorValue(
+                          latestLeft,
+                          "accel",
+                          uiState.leftAccelView,
+                          axis
+                        ),
+                        getSensorValue(
+                          latestRight,
+                          "accel",
+                          uiState.rightAccelView,
+                          axis
+                        )
+                      )
+                    )}
+
+                    <tr className="section-row">
+                      <td className="section-cell" colSpan={3}>
+                        Angular Velocity
+                      </td>
+                    </tr>
+                    {(["x", "y", "z"] as const).map((axis) =>
+                      renderRow(
+                        axis.toUpperCase(),
+                        getSensorValue(
+                          latestLeft,
+                          "gyro",
+                          uiState.leftGyroView,
+                          axis
+                        ),
+                        getSensorValue(
+                          latestRight,
+                          "gyro",
+                          uiState.rightGyroView,
+                          axis
+                        )
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="graphs-wrapper">
+                
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -211,4 +247,4 @@ function HomePage() {
   );
 }
 
-export default HomePage;
+export default Dashboard;
