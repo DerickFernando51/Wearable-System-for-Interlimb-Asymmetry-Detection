@@ -1,21 +1,23 @@
 import React from "react";
-import { ref, set, remove } from "firebase/database";
+import { ref, remove } from "firebase/database";
 import database from "../firebase";
 
-interface ControlButtonsProps {}
+export interface ControlButtonsProps {
+  onStart: () => void;
+  onStop: () => void;
+  onReset?: () => void; // optional, can also handle custom reset
+}
 
-const ControlButtons: React.FC<ControlButtonsProps> = () => {
-  const handleStart = () => {
-    set(ref(database, "commands/recording"), true);
-  };
-
-  const handleStop = () => {
-    set(ref(database, "commands/recording"), false);
-  };
-
+const ControlButtons: React.FC<ControlButtonsProps> = ({ onStart, onStop, onReset }) => {
   const handleReset = () => {
-    // Stop recording first
-    set(ref(database, "commands/recording"), false);
+    // Call optional external onReset if provided
+    if (onReset) {
+      onReset();
+      return;
+    }
+
+    // Default reset behavior
+    onStop(); // stop recording first
 
     // Remove leftFoot and rightFoot data
     remove(ref(database, "leftFoot"))
@@ -29,10 +31,10 @@ const ControlButtons: React.FC<ControlButtonsProps> = () => {
 
   return (
     <div className="button-panel">
-      <button className="control-button start" onClick={handleStart}>
+      <button className="control-button start" onClick={onStart}>
         Start
       </button>
-      <button className="control-button stop" onClick={handleStop}>
+      <button className="control-button stop" onClick={onStop}>
         Stop
       </button>
       <button className="control-button reset" onClick={handleReset}>

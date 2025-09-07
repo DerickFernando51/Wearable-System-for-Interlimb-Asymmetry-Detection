@@ -389,3 +389,18 @@ tr.indented td.label {
   text-align: right;
   color: black;
 }
+
+.navigation button {
+  transition: background-color 0.3s;
+}
+
+.navigation button:hover {
+  background-color: #3182ce !important;
+  color: white;
+}
+
+/* Ensure sections take full width */
+.table-wrapper, .button-panel, .graph-section {
+  width: 100%;
+  margin: 0 auto;
+}

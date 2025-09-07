@@ -35,7 +35,7 @@ right_foot_buffer = []
 
 async def send_new_data(foot_name, last_timestamp, websocket):
     global left_foot_buffer, right_foot_buffer
-
+    
     ref = db.reference(foot_name)
     data = ref.order_by_child("timestamp").start_at(last_timestamp or 0).get() or {}
     sorted_data = sorted(data.values(), key=lambda x: x["timestamp"])
@@ -97,14 +97,25 @@ async def send_new_data(foot_name, last_timestamp, websocket):
         processed_data.append(pd)
 
         # Save median-filtered values for asymmetry calculation
+        # buf_item = {
+        #     "force": float(force_filt[i]),
+        #     "accel_x": float(accel_x_filt[i]),
+        #     "accel_y": float(accel_y_filt[i]),
+        #     "accel_z": float(accel_z_filt[i]),
+        #     "gyro_x": float(gyro_x_filt[i]),
+        #     "gyro_y": float(gyro_y_filt[i]),
+        #     "gyro_z": float(gyro_z_filt[i]),
+        # }
+
+        #rms_accel = np.sqrt(accel_x[i]**2 + accel_y[i]**2 + accel_z[i]**2)
+        rms_accel = np.sqrt(accel_x_filt[i]**2 + accel_y_filt[i]**2 + accel_z_filt[i]**2)
+        #rms_gyro = np.sqrt(gyro_x[i]**2 + gyro_y[i]**2 + gyro_z[i]**2)
+        rms_gyro = np.sqrt(gyro_x_filt[i]**2 + gyro_y_filt[i]**2 + gyro_z_filt[i]**2)
+
         buf_item = {
-            "force": float(force_filt[i]),
-            "accel_x": float(accel_x_filt[i]),
-            "accel_y": float(accel_y_filt[i]),
-            "accel_z": float(accel_z_filt[i]),
-            "gyro_x": float(gyro_x_filt[i]),
-            "gyro_y": float(gyro_y_filt[i]),
-            "gyro_z": float(gyro_z_filt[i]),
+            "force": float(force[i]),
+            "accel": float(rms_accel),
+            "gyro": float(rms_gyro),
         }
 
         if foot_name == "leftFoot":
@@ -122,17 +133,22 @@ async def calculate_asymmetry_index(websocket):
     if not left_foot_buffer or not right_foot_buffer:
         return
 
-    channels = ["force", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"]
+    channels = ["force", "accel", "gyro"]
     asymmetry_index = {}
 
     for ch in channels:
         left_values = np.array([item[ch] for item in left_foot_buffer])
         right_values = np.array([item[ch] for item in right_foot_buffer])
+        left_mean = np.mean(np.abs(left_values))
+        right_mean = np.mean(np.abs(right_values))
 
-        strong = max(np.median(np.abs(left_values)), np.median(np.abs(right_values)))
-        weak = min(np.median(np.abs(left_values)), np.median(np.abs(right_values)))
-        total = np.median(np.abs(left_values)) + np.median(np.abs(right_values))
-        asymmetry_index[ch] = ((strong - weak) / total * 100) if total != 0 else 0
+        if left_mean == 0 or right_mean == 0:
+             asymmetry_index[ch] = 0
+        else:
+            strong = max(np.mean(np.abs(left_values)), np.mean(np.abs(right_values)))
+            weak = min(np.mean(np.abs(left_values)), np.mean(np.abs(right_values)))
+            total = np.mean(np.abs(left_values)) + np.mean(np.abs(right_values))
+            asymmetry_index[ch] = ((strong - weak) / total * 100) if total != 0 else 0
 
     await websocket.send_json({"asymmetry_index": asymmetry_index})
 
