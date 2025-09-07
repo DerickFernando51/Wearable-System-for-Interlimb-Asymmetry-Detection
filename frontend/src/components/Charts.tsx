@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback } from "react";
+import type { ReactNode } from "react";
 import {
   LineChart,
   Line,
@@ -26,7 +27,7 @@ interface FootChartProps {
   setView: React.Dispatch<
     React.SetStateAction<keyof AccelData | keyof GyroData>
   >;
-  title: string;
+  title: ReactNode;
   type: "accel" | "gyro";
 }
 
@@ -136,7 +137,7 @@ export const MemoizedFootChart = React.memo(FootChart);
 // ---------------- FORCE CHART ----------------
 interface ForceChartProps {
   footData: FootData[];
-  title: string;
+  title: ReactNode;
   view: ForceView;
   setView: (view: ForceView) => void;
 }

@@ -135,21 +135,6 @@ tr.indented td.label {
   width: 100px;
 }
 
-.control-button.start {
-  background-color: #22c55e; /* green */
-}
-
-.control-button.start:hover {
-  background-color: #16a34a;
-}
-
-.control-button.stop {
-  background-color: #ef4444; /* red */
-}
-
-.control-button.stop:hover {
-  background-color: #dc2626;
-}
 
 /* Horizontal container for table and buttons */
  .table-button-container {
@@ -281,6 +266,13 @@ tr.indented td.label {
     flex: 1;
   }
 }
+ 
+.chart-title {
+  font-weight: 550;
+  font-size: 18px;
+  text-align: center;
+}
+
 
 .graph-columns {
   display: flex;

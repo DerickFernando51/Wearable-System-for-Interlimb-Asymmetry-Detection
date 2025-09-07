@@ -29,7 +29,7 @@ const GraphsPanel: React.FC = () => {
               )
             )
           }
-          title="Left Foot Acceleration"
+          title={<span className="chart-title">Left Foot Acceleration</span>}
           type="accel"
         />
         <MemoizedFootChart
@@ -42,7 +42,7 @@ const GraphsPanel: React.FC = () => {
               )
             )
           }
-          title="Right Foot Acceleration"
+          title={<span className="chart-title">Right Foot Acceleration</span>}
           type="accel"
         />
       </div>
@@ -58,7 +58,9 @@ const GraphsPanel: React.FC = () => {
               )
             )
           }
-          title="Left Foot Angular Velocity"
+          title={
+            <span className="chart-title">Left Foot Angular Velocity</span>
+          }
           type="gyro"
         />
         <MemoizedFootChart
@@ -71,7 +73,9 @@ const GraphsPanel: React.FC = () => {
               )
             )
           }
-          title="Right Foot Angular Velocity"
+          title={
+            <span className="chart-title">Right Foot Angular Velocity</span>
+          }
           type="gyro"
         />
       </div>
@@ -81,13 +85,13 @@ const GraphsPanel: React.FC = () => {
           footData={footDataState.leftFoot}
           view={uiState.leftForceView}
           setView={(v) => dispatch(setLeftForceView(v))}
-          title="Left Foot Force"
+          title={<span className="chart-title">Left Foot Force</span>}
         />
         <MemoizedForceChart
           footData={footDataState.rightFoot}
           view={uiState.rightForceView}
           setView={(v) => dispatch(setRightForceView(v))}
-          title="Right Foot Force"
+          title={<span className="chart-title">Right Foot Force</span>}
         />
       </div>
     </div>
