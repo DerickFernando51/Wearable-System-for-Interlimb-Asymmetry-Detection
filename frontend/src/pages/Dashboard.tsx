@@ -132,23 +132,25 @@ function Dashboard() {
         {/* Right Column: Realtime Data */}
         <div className="right-column">
           <div className="dashboard-card wide-card">
-            <h2>Realtime Data</h2>
+           <div className="realtime-header">
+  <h2>Realtime Data</h2>
 
-            {/* Tabs */}
-            <div className="view-toggle-buttons">
-              <button
-                className={activeView === "table" ? "active" : ""}
-                onClick={() => setActiveView("table")}
-              >
-                Table
-              </button>
-              <button
-                className={activeView === "graphs" ? "active" : ""}
-                onClick={() => setActiveView("graphs")}
-              >
-                Graphs
-              </button>
-            </div>
+  <div className="view-toggle-buttons">
+    <button
+      className={activeView === "table" ? "active" : ""}
+      onClick={() => setActiveView("table")}
+    >
+      Table
+    </button>
+    <button
+      className={activeView === "graphs" ? "active" : ""}
+      onClick={() => setActiveView("graphs")}
+    >
+      Graphs
+    </button>
+  </div>
+</div>
+
 
             {activeView === "table" ? (
               <div className="table-wrapper">{/* table content */}</div>

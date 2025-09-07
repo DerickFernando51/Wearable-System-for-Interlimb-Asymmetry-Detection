@@ -249,11 +249,10 @@ tr.indented td.label {
 }
 
 .line-chart-container {
-  background-color: #ffffff;
   border-radius: 8px;
-  padding: 10px;
+  padding: 8px;
   margin-bottom: 30px;
-  background-color: white;
+  background-color: #f5f5f5;
 }
 
 /* Responsive adjustments */
@@ -277,7 +276,7 @@ tr.indented td.label {
 .graph-columns {
   display: flex;
   flex-direction: row;
-  gap: 90px;  
+  gap: 50px;  
   margin-bottom: 30px;
   align-items: flex-start;
 }
@@ -451,7 +450,7 @@ tr.indented td.label {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 3fr; /* left narrow, right wider */
+  grid-template-columns: 1fr 4fr; /* left narrow, right wider */
   gap: 2rem;
   width: 100%;
   max-width: 1400px;
@@ -470,7 +469,7 @@ tr.indented td.label {
 }
 
  .dashboard-card {
-  background: #fff; /* white card */
+  background: #fff; 
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
@@ -523,6 +522,42 @@ tr.indented td.label {
   font-weight: bold;
   color:  #4169E1;
 }  
+
+
+.realtime-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* h2 on left, buttons on right */
+  margin-bottom: 1rem;
+}
+
+.view-toggle-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-toggle-buttons button {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f5f5f5;
+  color: #333;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.view-toggle-buttons button:hover {
+  background-color: #e0e0e0;
+}
+
+.view-toggle-buttons button.active {
+  background-color: #1890ff; /* match chart line */
+  color: white;
+  border-color: #1890ff;
+  font-weight: 500;
+}
+
 
 
 
