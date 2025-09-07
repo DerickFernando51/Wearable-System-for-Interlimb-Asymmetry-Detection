@@ -157,8 +157,8 @@ tr.indented td.label {
   justify-content: center; 
   gap: 15rem;                        
   overflow-x: auto;        
-  width: 100%;
-  margin-top: 3rem; 
+  width: 60%;
+  margin: 1rem auto 0 auto;
 }
 
 .table-wrapper {
