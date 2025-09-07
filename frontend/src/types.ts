@@ -27,5 +27,9 @@ export type GyroView = keyof GyroData;
 export interface WSData {
   leftFoot?: FootData[];
   rightFoot?: FootData[];
-  asymmetry_index?: number | Record<string, number>;
+  asymmetry_index?: Record<string, number> | null;
 }
+
+
+export type AsymmetryIndex = Record<string, number> | null;
+
