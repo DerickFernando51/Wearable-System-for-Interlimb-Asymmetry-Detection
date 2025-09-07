@@ -154,9 +154,14 @@ function Dashboard() {
               {activeView === "table" ? (
                 <div className="table-wrapper">{/* table content */}</div>
               ) : (
-                 
-                  <GraphsPanel />
-                 
+                  <>
+      
+      <div className="horizontal-line"></div>
+
+       
+        <GraphsPanel />
+       
+    </>
               )}
 
               {/* Conditional rendering */}

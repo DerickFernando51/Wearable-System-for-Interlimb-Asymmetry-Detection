@@ -153,6 +153,7 @@ tr.indented td.label {
   box-shadow: 0 10px 20px rgba(59, 130, 246, 0.1);
   overflow-x: auto;
 }
+ 
 
 /* Button panel on the right */
 .button-panel {
@@ -278,6 +279,7 @@ tr.indented td.label {
   font-weight: 550;
   font-size: 18px;
   text-align: center;
+  color:#1890ff;
 }
 
 
@@ -454,6 +456,7 @@ tr.indented td.label {
   align-items: center;
   min-height: 100vh;
   
+  
 }
 
 .dashboard-grid {
@@ -462,7 +465,7 @@ tr.indented td.label {
   gap: 2rem;
   width: 100%;
   max-width: 1400px;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 .left-column {
@@ -496,7 +499,7 @@ tr.indented td.label {
 }
 
 .table-wrapper {
-  max-height: 500px; /* scrollable table */
+  max-height: 500px;  
   overflow-y: auto;
   margin-top: 1rem;
 }
@@ -544,7 +547,7 @@ tr.indented td.label {
   border-radius: 8px;
   background-color: #fff;
   padding: 16px;
-  max-height: 625px; 
+  max-height: 600px; 
 }
 
 .realtime-header {
@@ -588,12 +591,18 @@ tr.indented td.label {
   font-weight: 500;
 }
 
+.horizontal-line {
+  height: 2px;
+  background-color: #cbd5e1; /* same gray as table border */
+  margin: 1rem 0; /* spacing above/below */
+  width: 100%;
+}
+
  
 
 
 
 
-
-
+ 
 
 
