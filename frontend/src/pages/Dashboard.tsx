@@ -169,6 +169,21 @@ function Dashboard() {
             </div>
 
             <div className="scrollable">
+               {activeView === "table" ? (
+                <div className="table-wrapper">{/* table content */}</div>
+              ) : (
+                  <>
+      
+      <div className="horizontal-line"></div>
+
+       
+        <GraphsPanel   
+                    leftFootData={footDataState.leftFoot}
+                    rightFootData={footDataState.rightFoot}
+                  />
+       
+    </>
+              )}
               {activeView === "table" ? (
                 <div className="table-wrapper">
                   <table className="data-table">
@@ -251,10 +266,7 @@ function Dashboard() {
                 </div>
               ) : (
                 <div className="graphs-wrapper">
-                    <GraphsPanel   
-                    leftFootData={footDataState.leftFoot}
-                    rightFootData={footDataState.rightFoot}
-                  />
+                    
                 </div>
               )}
             </div>
