@@ -28,17 +28,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global variables
-recording = False
-left_foot_buffer = []
-right_foot_buffer = []
-
 async def send_new_data(foot_name, last_timestamp, websocket):
     global left_foot_buffer, right_foot_buffer
-    
+
     ref = db.reference(foot_name)
-    data = ref.order_by_child("timestamp").start_at(last_timestamp or 0).get() or {}
-    sorted_data = sorted(data.values(), key=lambda x: x["timestamp"])
+    data = ref.get() or {}  # Get all entries under leftFoot/rightFoot
+
+    # Flatten all batch arrays
+    all_batches = []
+    for key, value in data.items():
+        batch_list = value.get("batch", [])
+        for item in batch_list:
+            all_batches.append(item)
+
+    # Sort by timestamp
+    all_batches.sort(key=lambda x: float(x["timestamp"]))
+
+    # Filter new data
     new_data = [item for item in sorted_data if last_timestamp is None or item["timestamp"] > last_timestamp]
     if not new_data:
         return last_timestamp

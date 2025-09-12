@@ -1,10 +1,10 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice} from "@reduxjs/toolkit";
 import type {PayloadAction } from "@reduxjs/toolkit";
-import type { FootData, AsymmetryIndex } from "../types";
+import type { FootDataPoint, AsymmetryIndex } from "../types";
 
 interface FootDataState {
-  leftFoot: FootData[];
-  rightFoot: FootData[];
+  leftFoot: FootDataPoint[];
+  rightFoot: FootDataPoint[];
   asymmetryIndex: AsymmetryIndex | null;
 }
 
@@ -18,10 +18,10 @@ const footDataSlice = createSlice({
   name: "footData",
   initialState,
   reducers: {
-    setLeftFoot(state, action: PayloadAction<FootData[]>) {
+    setLeftFoot(state, action: PayloadAction<FootDataPoint[]>) {
       state.leftFoot = action.payload;
     },
-    setRightFoot(state, action: PayloadAction<FootData[]>) {
+    setRightFoot(state, action: PayloadAction<FootDataPoint[]>) {
       state.rightFoot = action.payload;
     },
     setAsymmetryIndex(state, action: PayloadAction<AsymmetryIndex | null>) {

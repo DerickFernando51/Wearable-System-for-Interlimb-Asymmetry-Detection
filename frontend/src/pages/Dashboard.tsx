@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
 import ControlButtons from "../components/ControlButtons";
-import { useFootData } from "../hooks/useFootData";
+import useFootData from "../hooks/useFootData";
 import { useRecording } from "../hooks/useRecording";
 import {
   setLeftFoot,
   setRightFoot,
   setAsymmetryIndex,
 } from "../slices/footDataSlice";
-import type { FootData, AccelData, GyroData, SensorAxis } from "../types";
+import type { AccelData, GyroData, SensorAxis, FootDataPoint, ForceView } from "../types";
 import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
 import GraphsPanel from "../components/GraphsPanel";
 
@@ -23,7 +23,7 @@ function Dashboard() {
 
   const [activeView, setActiveView] = useState<"table" | "graphs">("table");
 
-  // Update Redux store
+  // Update Redux store when foot data changes
   useEffect(() => {
     dispatch(setLeftFoot(leftFootProcessed));
     dispatch(setRightFoot(rightFootProcessed));
@@ -38,42 +38,34 @@ function Dashboard() {
     }
   }, [leftFootProcessed, rightFootProcessed, asymmetryIndex, dispatch]);
 
-  // Helper: get latest point from batch
- const getLatestPoint = (footData: FootData | undefined | null) => {
-  if (!footData) return null;
+  // Latest point helper (array-based)
+  const getLatestPoint = (points: FootDataPoint[] | undefined | null) => {
+    if (!points || points.length === 0) return null;
+    return points[points.length - 1];
+  };
 
-  let latest: FootDataPoint | null = null;
+  const latestLeft = getLatestPoint(footDataState.leftFoot);
+  const latestRight = getLatestPoint(footDataState.rightFoot);
 
-  Object.values(footData).forEach((entry) => {
-    if (!entry.batch || entry.batch.length === 0) return;
-    const lastInBatch = entry.batch.at(-1)!;
-    if (!latest || parseFloat(lastInBatch.timestamp) > parseFloat(latest.timestamp)) {
-      latest = lastInBatch;
-    }
-  });
-
-  return latest;
-};
- const latestLeft = getLatestPoint(footDataState.leftFoot);
-const latestRight = getLatestPoint(footDataState.rightFoot);
-
-
-
-
-  // Helper: extract sensor values
+  // Extract sensor value
   const getSensorValue = (
-  foot: FootData | null,
+  foot: FootDataPoint | null,
   sensor: "accel" | "gyro" | "force",
-  view?: keyof AccelData | keyof GyroData | string,
+  view?: ForceView | keyof AccelData | keyof GyroData,
   axis?: keyof SensorAxis
 ) => {
   if (!foot) return 0;
 
-  if (sensor === "force") return foot.force ?? 0;
-  if (!axis || !foot[sensor]) return 0;
-  return (foot[sensor] as any)[axis] ?? 0;
-};
+  const data = foot[sensor as keyof FootDataPoint] as any;
+  if (!data) return 0;
 
+  if (sensor === "force") {
+    return data ?? 0; // force is a number in your Firebase data
+  }
+
+  if (!axis) return 0;
+  return data[axis] ?? 0;
+};
 
 
   // Table row renderer
@@ -85,7 +77,7 @@ const latestRight = getLatestPoint(footDataState.rightFoot);
     </tr>
   );
 
-  // Pie chart
+  // Pie chart data
   const channelValues = [
     { name: "Accelerometer", value: footDataState.asymmetryIndex?.accel ?? 0 },
     { name: "Gyroscope", value: footDataState.asymmetryIndex?.gyro ?? 0 },
@@ -156,7 +148,6 @@ const latestRight = getLatestPoint(footDataState.rightFoot);
           <div className="dashboard-card wide-card">
             <div className="realtime-header">
               <h2>Realtime Data</h2>
-
               <div className="view-toggle-buttons">
                 <button
                   className={activeView === "table" ? "active" : ""}
@@ -181,7 +172,9 @@ const latestRight = getLatestPoint(footDataState.rightFoot);
                       <tr className="table-header">
                         <th className="header-cell rounded-left">Data</th>
                         <th className="header-cell">Left Foot</th>
-                        <th className="header-cell rounded-right">Right Foot</th>
+                        <th className="header-cell rounded-right">
+                          Right Foot
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -192,8 +185,16 @@ const latestRight = getLatestPoint(footDataState.rightFoot);
                       )}
                       {renderRow(
                         "Force",
-                        getSensorValue(latestLeft, "force", uiState.leftForceView),
-                        getSensorValue(latestRight, "force", uiState.rightForceView)
+                        getSensorValue(
+                          latestLeft,
+                          "force",
+                          uiState.leftForceView
+                        ),
+                        getSensorValue(
+                          latestRight,
+                          "force",
+                          uiState.rightForceView
+                        )
                       )}
 
                       <tr className="section-row">
@@ -246,7 +247,10 @@ const latestRight = getLatestPoint(footDataState.rightFoot);
                 </div>
               ) : (
                 <div className="graphs-wrapper">
-                  <GraphsPanel />
+                  <GraphsPanel
+                    leftFootData={footDataState.leftFoot}
+                    rightFootData={footDataState.rightFoot}
+                  />
                 </div>
               )}
             </div>

@@ -21,16 +21,20 @@ export type FootDataPoint = {
   gyro: GyroData;
 };
 
-export type FootBatch = {
-  batch: FootDataPoint[];
-};
-
-export type FootData = Record<string, FootBatch>; // e.g., { "-OZwx1JGfQH-IePlGout": { batch: [...] } }
+export type AsymmetryIndex = Record<string, number> | null;
 
 export interface WSData {
-  leftFoot?: FootData;
-  rightFoot?: FootData;
-  asymmetry_index?: Record<string, number> | null;
+  leftFoot?: Record<string, { batch: FootDataPoint[] }>;
+  rightFoot?: Record<string, { batch: FootDataPoint[] }>;
+  asymmetry_index?: AsymmetryIndex;
 }
 
-export type AsymmetryIndex = Record<string, number> | null;
+export type FootData = {
+  accel?: Record<string, { x?: number; y?: number; z?: number }>;
+  gyro?: Record<string, { x?: number; y?: number; z?: number }>;
+  force?: number | Record<string, number>;
+  batch?: FootDataPoint[];
+};
+
+ 
+ 

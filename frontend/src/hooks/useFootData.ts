@@ -1,38 +1,33 @@
- import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import database from '../firebase';
 import { ref, onValue, query, limitToLast } from 'firebase/database';
-import type { FootData, WSData } from '../types';
+import type { FootDataPoint, WSData, AsymmetryIndex } from '../types';
 
-export function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu') {
-  const [leftFootProcessed, setLeftFootProcessed] = useState<FootData[]>([]);
-  const [rightFootProcessed, setRightFootProcessed] = useState<FootData[]>([]);
-  const [asymmetryIndex, setAsymmetryIndex] = useState<number | Record<string, number> | null>(null);
+export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu') {
+  const [leftFootProcessed, setLeftFootProcessed] = useState<FootDataPoint[]>([]);
+  const [rightFootProcessed, setRightFootProcessed] = useState<FootDataPoint[]>([]);
+  const [asymmetryIndex, setAsymmetryIndex] = useState<AsymmetryIndex>(null);
   const MAX_POINTS = 200;
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ----------------- Firebase subscription -----------------
+  // Firebase subscription
   useEffect(() => {
     const leftRef = query(ref(database, 'leftFoot'), limitToLast(1));
     const rightRef = query(ref(database, 'rightFoot'), limitToLast(1));
 
-    const unsubscribeLeft = onValue(leftRef, (snapshot) => {
-      const data = snapshot.val() as Record<string, FootData> | null;
+    const unsubscribeLeft = onValue(leftRef, snapshot => {
+      const data = snapshot.val() as Record<string, { batch: FootDataPoint[] }> | null;
       if (data) {
-        setLeftFootProcessed((prev) => [
-          ...prev.slice(-MAX_POINTS + 1),
-          Object.values(data).pop()!,
-        ]);
+        const batches = Object.values(data).flatMap(entry => entry.batch);
+        setLeftFootProcessed(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
       }
     });
 
-    const unsubscribeRight = onValue(rightRef, (snapshot) => {
-      const data = snapshot.val() as Record<string, FootData> | null;
+    const unsubscribeRight = onValue(rightRef, snapshot => {
+      const data = snapshot.val() as Record<string, { batch: FootDataPoint[] }> | null;
       if (data) {
-        setRightFootProcessed((prev) => [
-          ...prev.slice(-MAX_POINTS + 1),
-          Object.values(data).pop()!,
-        ]);
+        const batches = Object.values(data).flatMap(entry => entry.batch);
+        setRightFootProcessed(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
       }
     });
 
@@ -42,52 +37,37 @@ export function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu') {
     };
   }, []);
 
-  // ----------------- WebSocket connection -----------------
+  // WebSocket connection
   useEffect(() => {
     let shouldReconnect = true;
 
     const connect = () => {
       if (!shouldReconnect) return;
-      
-      console.log(`Attempting to connect to WebSocket: ${wsUrl}`);
+
       wsRef.current = new WebSocket(wsUrl);
 
-      wsRef.current.onopen = () => {
-        console.log('WebSocket connected successfully');
-      };
-
-      wsRef.current.onmessage = (event: MessageEvent) => {
+      wsRef.current.onmessage = event => {
         try {
           const data: WSData = JSON.parse(event.data);
-          if (data.asymmetry_index !== undefined) {
-            setAsymmetryIndex(data.asymmetry_index);
-          }
+
+          if (data.asymmetry_index) setAsymmetryIndex(data.asymmetry_index);
+
           if (data.leftFoot) {
-            setLeftFootProcessed((prev) => [
-              ...prev.slice(-MAX_POINTS + (data.leftFoot?.length || 0)),
-              ...(data.leftFoot || []),
-            ]);
+            const batches = Object.values(data.leftFoot).flatMap(entry => entry.batch);
+            setLeftFootProcessed(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
           }
+
           if (data.rightFoot) {
-            setRightFootProcessed((prev) => [
-              ...prev.slice(-MAX_POINTS + (data.rightFoot?.length || 0)),
-              ...(data.rightFoot || []),
-            ]);
+            const batches = Object.values(data.rightFoot).flatMap(entry => entry.batch);
+            setRightFootProcessed(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
           }
         } catch (err) {
-          console.error('Error parsing WebSocket message:', err, 'Data:', event.data);
+          console.error('WebSocket parse error:', err);
         }
       };
 
-      wsRef.current.onerror = (event) => {
-        console.error('WebSocket error occurred:', event);
-      };
-
-      wsRef.current.onclose = (event) => {
-        console.warn(`WebSocket closed with code: ${event.code}, reason: ${event.reason}`);
-        if (shouldReconnect) {
-          reconnectTimeoutRef.current = setTimeout(connect, 2000);
-        }
+      wsRef.current.onclose = () => {
+        if (shouldReconnect) setTimeout(connect, 2000);
       };
     };
 
@@ -95,13 +75,7 @@ export function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu') {
 
     return () => {
       shouldReconnect = false;
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
+      wsRef.current?.close();
     };
   }, [wsUrl]);
 
