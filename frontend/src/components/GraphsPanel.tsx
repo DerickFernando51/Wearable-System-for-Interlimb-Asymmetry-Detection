@@ -19,7 +19,10 @@ interface GraphsPanelProps {
 
 const GraphsPanel: React.FC<GraphsPanelProps> = ({ leftFootData, rightFootData }) => {
   const dispatch = useDispatch();
-  const uiState = useSelector((state: RootState) => state.ui);
+    const uiState = useSelector((state: RootState) => state.ui);
+console.log("GraphsPanel received leftFootData:", leftFootData);
+console.log("GraphsPanel received rightFootData:", rightFootData);
+
 
   return (
     <div className="graph-section">

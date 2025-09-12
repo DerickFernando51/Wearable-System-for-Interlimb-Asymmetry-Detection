@@ -7,13 +7,13 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
   const [leftFootProcessed, setLeftFootProcessed] = useState<FootDataPoint[]>([]);
   const [rightFootProcessed, setRightFootProcessed] = useState<FootDataPoint[]>([]);
   const [asymmetryIndex, setAsymmetryIndex] = useState<AsymmetryIndex>(null);
-  const MAX_POINTS = 200;
+  const MAX_POINTS = 1000;
   const wsRef = useRef<WebSocket | null>(null);
 
   // Firebase subscription
   useEffect(() => {
-    const leftRef = query(ref(database, 'leftFoot'), limitToLast(1));
-    const rightRef = query(ref(database, 'rightFoot'), limitToLast(1));
+    const leftRef = query(ref(database, 'leftFoot'), limitToLast(50));
+    const rightRef = query(ref(database, 'rightFoot'), limitToLast(50));
 
     const unsubscribeLeft = onValue(leftRef, snapshot => {
       const data = snapshot.val() as Record<string, { batch: FootDataPoint[] }> | null;
@@ -61,6 +61,8 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
             const batches = Object.values(data.rightFoot).flatMap(entry => entry.batch);
             setRightFootProcessed(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
           }
+
+          
         } catch (err) {
           console.error('WebSocket parse error:', err);
         }

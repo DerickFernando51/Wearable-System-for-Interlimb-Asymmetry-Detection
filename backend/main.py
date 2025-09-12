@@ -8,8 +8,11 @@ import os
 from dotenv import load_dotenv
 import asyncio
 
-KERNEL_SIZE = 5
-KERNEL_SIZE_FORCE = 3
+KERNEL_SIZE = 1
+KERNEL_SIZE_FORCE = 1
+left_foot_buffer = []
+right_foot_buffer = []
+
 
 # Firebase init
 load_dotenv()
@@ -34,18 +37,18 @@ async def send_new_data(foot_name, last_timestamp, websocket):
     ref = db.reference(foot_name)
     data = ref.get() or {}  # Get all entries under leftFoot/rightFoot
 
-    # Flatten all batch arrays
+    # Flatten batches
     all_batches = []
     for key, value in data.items():
         batch_list = value.get("batch", [])
         for item in batch_list:
             all_batches.append(item)
 
-    # Sort by timestamp
+    # Sort
     all_batches.sort(key=lambda x: float(x["timestamp"]))
 
     # Filter new data
-    new_data = [item for item in sorted_data if last_timestamp is None or item["timestamp"] > last_timestamp]
+    new_data = [item for item in all_batches if last_timestamp is None or float(item["timestamp"]) > float(last_timestamp)]
     if not new_data:
         return last_timestamp
 
@@ -83,21 +86,23 @@ async def send_new_data(foot_name, last_timestamp, websocket):
     for i, item in enumerate(new_data):
         # Prepare full processed structure for frontend
         pd = {
-            "timestamp": item["timestamp"],
+            "timestamp": round(float(item["timestamp"]), 3),
             "force": {
-                "raw": float(force[i]),
-                "dcb_removed": float(force_dcb[i]),
-                "median_filtered": float(force_filt[i])
+                "raw": round(float(force[i]), 3),
+                "dcb_removed": round(float(force_dcb[i]), 3),
+                "median_filtered": round(float(force_filt[i]), 3)
             },
             "accel": {
-                "raw": {"x": float(accel_x[i]), "y": float(accel_y[i]), "z": float(accel_z[i])},
-                "dcb_removed": {"x": float(accel_x_dcb[i]), "y": float(accel_y_dcb[i]), "z": float(accel_z_dcb[i])},
-                "median_filtered": {"x": float(accel_x_filt[i]), "y": float(accel_y_filt[i]), "z": float(accel_z_filt[i])},
-            },
+                "raw":  {"x": round(float(accel_x[i]), 3), "y": round(float(accel_y[i]), 3), "z": round(float(accel_z[i]), 3)},
+                "dcb_removed":  {"x": round(float(accel_x_dcb[i]), 3), "y": round(float(accel_y_dcb[i]), 3), "z": round(float(accel_z_dcb[i]), 3)},
+                "median_filtered":   {"x": round(float(accel_x_filt[i]), 3), "y": round(float(accel_y_filt[i]), 3), "z": round(float(accel_z_filt[i]), 3)},
             "gyro": {
-                "raw": {"x": float(gyro_x[i]), "y": float(gyro_y[i]), "z": float(gyro_z[i])},
-                "dcb_removed": {"x": float(gyro_x_dcb[i]), "y": float(gyro_y_dcb[i]), "z": float(gyro_z_dcb[i])},
-                "median_filtered": {"x": float(gyro_x_filt[i]), "y": float(gyro_y_filt[i]), "z": float(gyro_z_filt[i])},
+                "raw": {"x": round(float(gyro_x[i]), 3), "y": round(float(gyro_y[i]), 3), "z": round(float(gyro_z[i]), 3)},
+                "dcb_removed": {"x": round(float(gyro_x_dcb[i]), 3), "y": round(float(gyro_y_dcb[i]), 3), "z": round(float(gyro_z_dcb[i]), 3)},
+                "median_filtered": {"x": round(float(gyro_x_filt[i]), 3), "y": round(float(gyro_y_filt[i]), 3), "z": round(float(gyro_z_filt[i]), 3)},
+            
+            
+                }
             }
         }
         processed_data.append(pd)
@@ -119,9 +124,9 @@ async def send_new_data(foot_name, last_timestamp, websocket):
         rms_gyro = np.sqrt(gyro_x_filt[i]**2 + gyro_y_filt[i]**2 + gyro_z_filt[i]**2)
 
         buf_item = {
-            "force": float(force[i]),
-            "accel": float(rms_accel),
-            "gyro": float(rms_gyro),
+            "force": round(float(force[i]), 3),
+            "accel": round(rms_accel, 3),
+            "gyro": round(rms_gyro, 3),
         }
 
         if foot_name == "leftFoot":
@@ -129,7 +134,9 @@ async def send_new_data(foot_name, last_timestamp, websocket):
         else:
             right_foot_buffer.append(buf_item)
 
-    await websocket.send_json({foot_name: processed_data})
+    print(f"[DEBUG] {foot_name} processed_data sample:", processed_data[:5])
+
+    await websocket.send_json({foot_name: {"batch": processed_data}})
     return latest_timestamp
 
 async def calculate_asymmetry_index(websocket):

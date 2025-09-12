@@ -11,19 +11,33 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { debounce } from "lodash";
-import type { FootDataPoint, ForceView, AccelData, GyroData, SensorAxis } from "../types";
+import type {
+  FootDataPoint,
+  ForceView,
+  AccelData,
+  GyroData,
+  SensorAxis,
+} from "../types";
 import "../App.css";
 
 // ---------------- FOOT CHART ----------------
 interface FootChartProps {
   footData: FootDataPoint[];
   view: keyof AccelData | keyof GyroData;
-  setView: React.Dispatch<React.SetStateAction<keyof AccelData | keyof GyroData>>;
+  setView: React.Dispatch<
+    React.SetStateAction<keyof AccelData | keyof GyroData>
+  >;
   title: ReactNode;
   type: "accel" | "gyro";
 }
 
-export const FootChart = ({ footData, view, setView, title, type }: FootChartProps) => {
+export const FootChart = ({
+  footData,
+  view,
+  setView,
+  title,
+  type,
+}: FootChartProps) => {
   const viewOptions = [
     { value: "raw", label: "Raw Data" },
     { value: "dcb_removed", label: "DC Bias Removed" },
@@ -31,7 +45,10 @@ export const FootChart = ({ footData, view, setView, title, type }: FootChartPro
   ];
 
   const handleViewChange = useCallback(
-    debounce((newView: keyof AccelData | keyof GyroData) => setView(newView), 100),
+    debounce(
+      (newView: keyof AccelData | keyof GyroData) => setView(newView),
+      100
+    ),
     []
   );
 
@@ -44,7 +61,10 @@ export const FootChart = ({ footData, view, setView, title, type }: FootChartPro
           <YAxis
             tick={{ fill: "#475569", fontSize: 12 }}
             label={{
-              value: type === "accel" ? "Acceleration (m/s²)" : "Angular Velocity (°/s)",
+              value:
+                type === "accel"
+                  ? "Acceleration (m/s²)"
+                  : "Angular Velocity (°/s)",
               angle: -90,
               position: "insideLeft",
               fill: "#1e293b",
@@ -65,9 +85,24 @@ export const FootChart = ({ footData, view, setView, title, type }: FootChartPro
             <Line
               key={axis}
               type="monotone"
-              dataKey={(d: FootDataPoint) => d[type][view][axis] ?? 0}
-              stroke={axis === "x" ? "#ff4d4f" : axis === "y" ? "#52c41a" : "#1890ff"}
-              name={`${type === "accel" ? "Accel" : "Gyro"} ${axis.toUpperCase()}`}
+              dataKey={(d: FootDataPoint) => {
+                const sensorData = d[type]; 
+                if (!sensorData) return 0;
+
+                // If nested view exists
+                if (typeof sensorData[view] === "object") {
+                  return sensorData[view]?.[axis] ?? 0;
+                }
+
+                // Flat structure fallback
+                return sensorData[axis] ?? 0;
+              }}
+              stroke={
+                axis === "x" ? "#ff4d4f" : axis === "y" ? "#52c41a" : "#1890ff"
+              }
+              name={`${
+                type === "accel" ? "Accel" : "Gyro"
+              } ${axis.toUpperCase()}`}
               dot={false}
               strokeWidth={2}
             />
@@ -86,7 +121,11 @@ export const FootChart = ({ footData, view, setView, title, type }: FootChartPro
           <div className="select-wrapper relative">
             <select
               value={view}
-              onChange={(e) => handleViewChange(e.target.value as keyof AccelData | keyof GyroData)}
+              onChange={(e) =>
+                handleViewChange(
+                  e.target.value as keyof AccelData | keyof GyroData
+                )
+              }
               className="view-select border rounded px-2 py-1"
             >
               {viewOptions.map((option) => (
@@ -116,14 +155,22 @@ interface ForceChartProps {
   setView: (view: ForceView) => void;
 }
 
-export const ForceChart = ({ footData, title, view, setView }: ForceChartProps) => {
+export const ForceChart = ({
+  footData,
+  title,
+  view,
+  setView,
+}: ForceChartProps) => {
   const viewOptions: { value: ForceView; label: string }[] = [
     { value: "raw", label: "Raw" },
     { value: "dcb_removed", label: "DC Bias Removed" },
     { value: "median_filtered", label: "Median Filtered" },
   ];
 
-  const handleViewChange = useCallback(debounce((v: ForceView) => setView(v), 100), []);
+  const handleViewChange = useCallback(
+    debounce((v: ForceView) => setView(v), 100),
+    []
+  );
 
   const chart = useMemo(
     () => (
@@ -152,13 +199,25 @@ export const ForceChart = ({ footData, title, view, setView }: ForceChartProps) 
           />
           <Legend wrapperStyle={{ fontSize: "12px", color: "#1e293b" }} />
           <Line
-            type="monotone"
-            dataKey={(d: FootDataPoint) => d.force[view] ?? 0}
-            stroke="#1890ff"
-            name="Force"
-            dot={false}
-            strokeWidth={2}
-          />
+  type="monotone"
+  dataKey={(d: FootDataPoint) => {
+    const f = d.force;
+    if (f == null) return 0;
+
+    // Nested object
+    if (typeof f === "object") {
+      return f[view] ?? 0;
+    }
+
+    // Flat number
+    return f;
+  }}
+  stroke="#1890ff"
+  name="Force"
+  dot={false}
+  strokeWidth={2}
+/>
+
         </LineChart>
       </ResponsiveContainer>
     ),

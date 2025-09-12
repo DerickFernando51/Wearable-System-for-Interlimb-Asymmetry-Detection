@@ -36,6 +36,9 @@ function Dashboard() {
     } else {
       dispatch(setAsymmetryIndex(null));
     }
+    console.log("Left foot processed from hook:", leftFootProcessed);
+    console.log("Right foot processed from hook:", rightFootProcessed);
+    console.log("Asymmetry index from hook:", asymmetryIndex);
   }, [leftFootProcessed, rightFootProcessed, asymmetryIndex, dispatch]);
 
   // Latest point helper (array-based)
@@ -46,6 +49,7 @@ function Dashboard() {
 
   const latestLeft = getLatestPoint(footDataState.leftFoot);
   const latestRight = getLatestPoint(footDataState.rightFoot);
+
 
   // Extract sensor value
   const getSensorValue = (
@@ -247,7 +251,7 @@ function Dashboard() {
                 </div>
               ) : (
                 <div className="graphs-wrapper">
-                  <GraphsPanel
+                    <GraphsPanel   
                     leftFootData={footDataState.leftFoot}
                     rightFootData={footDataState.rightFoot}
                   />
