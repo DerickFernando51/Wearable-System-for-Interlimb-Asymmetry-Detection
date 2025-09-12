@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
 import ControlButtons from "../components/ControlButtons";
@@ -23,8 +23,8 @@ function Dashboard() {
 
   const [activeView, setActiveView] = useState<"table" | "graphs">("table");
 
-  // Update Redux store when foot data changes
-  React.useEffect(() => {
+  // Update Redux store
+  useEffect(() => {
     dispatch(setLeftFoot(leftFootProcessed));
     dispatch(setRightFoot(rightFootProcessed));
     if (
@@ -38,24 +38,45 @@ function Dashboard() {
     }
   }, [leftFootProcessed, rightFootProcessed, asymmetryIndex, dispatch]);
 
-  const latestLeft: FootData | null = footDataState.leftFoot.at(-1) ?? null;
-  const latestRight: FootData | null = footDataState.rightFoot.at(-1) ?? null;
+  // Helper: get latest point from batch
+ const getLatestPoint = (footData: FootData | undefined | null) => {
+  if (!footData) return null;
 
+  let latest: FootDataPoint | null = null;
+
+  Object.values(footData).forEach((entry) => {
+    if (!entry.batch || entry.batch.length === 0) return;
+    const lastInBatch = entry.batch.at(-1)!;
+    if (!latest || parseFloat(lastInBatch.timestamp) > parseFloat(latest.timestamp)) {
+      latest = lastInBatch;
+    }
+  });
+
+  return latest;
+};
+ const latestLeft = getLatestPoint(footDataState.leftFoot);
+const latestRight = getLatestPoint(footDataState.rightFoot);
+
+
+
+
+  // Helper: extract sensor values
   const getSensorValue = (
-    foot: FootData | null,
-    sensor: "accel" | "gyro" | "force",
-    view?: keyof AccelData | keyof GyroData | string,
-    axis?: keyof SensorAxis
-  ) => {
-    if (!foot) return 0;
-    const data = foot[sensor as keyof FootData] as any;
-    if (!data) return 0;
-    if (sensor === "force")
-      return typeof data === "number" ? data : data[view as string] ?? 0;
-    if (!view || !axis) return 0;
-    return data[view]?.[axis] ?? 0;
-  };
+  foot: FootData | null,
+  sensor: "accel" | "gyro" | "force",
+  view?: keyof AccelData | keyof GyroData | string,
+  axis?: keyof SensorAxis
+) => {
+  if (!foot) return 0;
 
+  if (sensor === "force") return foot.force ?? 0;
+  if (!axis || !foot[sensor]) return 0;
+  return (foot[sensor] as any)[axis] ?? 0;
+};
+
+
+
+  // Table row renderer
   const renderRow = (label: string, leftValue: any, rightValue: any) => (
     <tr key={label} className="table-row">
       <td className="table-cell label">{label}</td>
@@ -64,6 +85,7 @@ function Dashboard() {
     </tr>
   );
 
+  // Pie chart
   const channelValues = [
     { name: "Accelerometer", value: footDataState.asymmetryIndex?.accel ?? 0 },
     { name: "Gyroscope", value: footDataState.asymmetryIndex?.gyro ?? 0 },
@@ -129,7 +151,7 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Right Column: Realtime Data */}
+        {/* Right Column */}
         <div className="right-column">
           <div className="dashboard-card wide-card">
             <div className="realtime-header">
@@ -150,22 +172,8 @@ function Dashboard() {
                 </button>
               </div>
             </div>
+
             <div className="scrollable">
-              {activeView === "table" ? (
-                <div className="table-wrapper">{/* table content */}</div>
-              ) : (
-                  <>
-      
-      <div className="horizontal-line"></div>
-
-       
-        <GraphsPanel />
-       
-    </>
-              )}
-
-              {/* Conditional rendering */}
-
               {activeView === "table" ? (
                 <div className="table-wrapper">
                   <table className="data-table">
@@ -173,9 +181,7 @@ function Dashboard() {
                       <tr className="table-header">
                         <th className="header-cell rounded-left">Data</th>
                         <th className="header-cell">Left Foot</th>
-                        <th className="header-cell rounded-right">
-                          Right Foot
-                        </th>
+                        <th className="header-cell rounded-right">Right Foot</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -186,16 +192,8 @@ function Dashboard() {
                       )}
                       {renderRow(
                         "Force",
-                        getSensorValue(
-                          latestLeft,
-                          "force",
-                          uiState.leftForceView
-                        ),
-                        getSensorValue(
-                          latestRight,
-                          "force",
-                          uiState.rightForceView
-                        )
+                        getSensorValue(latestLeft, "force", uiState.leftForceView),
+                        getSensorValue(latestRight, "force", uiState.rightForceView)
                       )}
 
                       <tr className="section-row">
@@ -247,7 +245,9 @@ function Dashboard() {
                   </table>
                 </div>
               ) : (
-                <div className="graphs-wrapper"></div>
+                <div className="graphs-wrapper">
+                  <GraphsPanel />
+                </div>
               )}
             </div>
           </div>

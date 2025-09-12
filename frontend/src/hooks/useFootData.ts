@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+ import { useEffect, useState, useRef } from 'react';
 import database from '../firebase';
 import { ref, onValue, query, limitToLast } from 'firebase/database';
 import type { FootData, WSData } from '../types';

@@ -14,22 +14,23 @@ export type GyroData = {
 
 export type ForceView = "raw" | "dcb_removed" | "median_filtered";
 
-export type FootData = {
+export type FootDataPoint = {
   timestamp: string;
   force: Record<ForceView, number>;
   accel: AccelData;
   gyro: GyroData;
 };
 
-export type AccelView = keyof AccelData;
-export type GyroView = keyof GyroData;
+export type FootBatch = {
+  batch: FootDataPoint[];
+};
+
+export type FootData = Record<string, FootBatch>; // e.g., { "-OZwx1JGfQH-IePlGout": { batch: [...] } }
 
 export interface WSData {
-  leftFoot?: FootData[];
-  rightFoot?: FootData[];
+  leftFoot?: FootData;
+  rightFoot?: FootData;
   asymmetry_index?: Record<string, number> | null;
 }
 
-
 export type AsymmetryIndex = Record<string, number> | null;
-
