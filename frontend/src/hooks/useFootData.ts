@@ -7,7 +7,7 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
   const [leftFootProcessed, setLeftFootProcessed] = useState<FootDataPoint[]>([]);
   const [rightFootProcessed, setRightFootProcessed] = useState<FootDataPoint[]>([]);
   const [asymmetryIndex, setAsymmetryIndex] = useState<AsymmetryIndex>(null);
-  const MAX_POINTS = 1000;
+  const MAX_POINTS = 5000;
   const wsRef = useRef<WebSocket | null>(null);
 
   // Firebase subscription

@@ -190,7 +190,7 @@ async def imu_ws(websocket: WebSocket):
             last_left_ts = await send_new_data("leftFoot", last_left_ts, websocket)
             last_right_ts = await send_new_data("rightFoot", last_right_ts, websocket)
 
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(1)
 
     except WebSocketDisconnect:
         print("Client disconnected")
