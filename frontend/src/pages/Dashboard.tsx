@@ -9,7 +9,13 @@ import {
   setRightFoot,
   setAsymmetryIndex,
 } from "../slices/footDataSlice";
-import type { AccelData, GyroData, SensorAxis, FootDataPoint, ForceView } from "../types";
+import type {
+  AccelData,
+  GyroData,
+  SensorAxis,
+  FootDataPoint,
+  ForceView,
+} from "../types";
 import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
 import GraphsPanel from "../components/GraphsPanel";
 
@@ -50,27 +56,25 @@ function Dashboard() {
   const latestLeft = getLatestPoint(footDataState.leftFoot);
   const latestRight = getLatestPoint(footDataState.rightFoot);
 
-
   // Extract sensor value
   const getSensorValue = (
-  foot: FootDataPoint | null,
-  sensor: "accel" | "gyro" | "force",
-  view?: ForceView | keyof AccelData | keyof GyroData,
-  axis?: keyof SensorAxis
-) => {
-  if (!foot) return 0;
+    foot: FootDataPoint | null,
+    sensor: "accel" | "gyro" | "force",
+    view?: ForceView | keyof AccelData | keyof GyroData,
+    axis?: keyof SensorAxis
+  ) => {
+    if (!foot) return 0;
 
-  const data = foot[sensor as keyof FootDataPoint] as any;
-  if (!data) return 0;
+    const data = foot[sensor as keyof FootDataPoint] as any;
+    if (!data) return 0;
 
-  if (sensor === "force") {
-    return data ?? 0; // force is a number in your Firebase data
-  }
+    if (sensor === "force") {
+      return data ?? 0; // force is a number in your Firebase data
+    }
 
-  if (!axis) return 0;
-  return data[axis] ?? 0;
-};
-
+    if (!axis) return 0;
+    return data[axis] ?? 0;
+  };
 
   // Table row renderer
   const renderRow = (label: string, leftValue: any, rightValue: any) => (
@@ -169,20 +173,17 @@ function Dashboard() {
             </div>
 
             <div className="scrollable">
-               {activeView === "table" ? (
+              {activeView === "table" ? (
                 <div className="table-wrapper">{/* table content */}</div>
               ) : (
-                  <>
-      
-      <div className="horizontal-line"></div>
+                <>
+                  <div className="horizontal-line"></div>
 
-       
-        <GraphsPanel   
+                  <GraphsPanel
                     leftFootData={footDataState.leftFoot}
                     rightFootData={footDataState.rightFoot}
                   />
-       
-    </>
+                </>
               )}
               {activeView === "table" ? (
                 <div className="table-wrapper">
@@ -265,9 +266,7 @@ function Dashboard() {
                   </table>
                 </div>
               ) : (
-                <div className="graphs-wrapper">
-                    
-                </div>
+                <div className="graphs-wrapper"></div>
               )}
             </div>
           </div>

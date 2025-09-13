@@ -34,34 +34,44 @@ app.add_middleware(
 async def send_new_data(foot_name, last_timestamp, websocket):
     global left_foot_buffer, right_foot_buffer
 
+    # Build query: only fetch items with timestamp >= last_timestamp
     ref = db.reference(foot_name)
-    data = ref.get() or {}  # Get all entries under leftFoot/rightFoot
+
+    if last_timestamp is None:
+        # First fetch, just take the latest 50 points
+        data = ref.order_by_child("timestamp").limit_to_last(50).get() or {}
+    else:
+        # Only fetch new points greater than last_timestamp
+        data = (
+            ref.order_by_child("timestamp")
+            .start_at(float(last_timestamp) + 0.0001)  # avoid duplicate boundary
+            .get()
+            or {}
+        )
 
     # Flatten batches
     all_batches = []
-    for key, value in data.items():
+    for _, value in (data.items() if isinstance(data, dict) else []):
         batch_list = value.get("batch", [])
         for item in batch_list:
             all_batches.append(item)
 
-    # Sort
-    all_batches.sort(key=lambda x: float(x["timestamp"]))
-
-    # Filter new data
-    new_data = [item for item in all_batches if last_timestamp is None or float(item["timestamp"]) > float(last_timestamp)]
-    if not new_data:
+    if not all_batches:
         return last_timestamp
 
-    latest_timestamp = new_data[-1]["timestamp"]
+    # Sort chronologically
+    all_batches.sort(key=lambda x: float(x["timestamp"]))
 
-    # Extract sensor data and apply DC bias removal + median filtering
-    accel_x = np.array([item.get("accel", {}).get("x", 0) for item in new_data])
-    accel_y = np.array([item.get("accel", {}).get("y", 0) for item in new_data])
-    accel_z = np.array([item.get("accel", {}).get("z", 0) for item in new_data])
-    gyro_x = np.array([item.get("gyro", {}).get("x", 0) for item in new_data])
-    gyro_y = np.array([item.get("gyro", {}).get("y", 0) for item in new_data])
-    gyro_z = np.array([item.get("gyro", {}).get("z", 0) for item in new_data])
-    force = np.array([item.get("force", 0) for item in new_data])
+    latest_timestamp = all_batches[-1]["timestamp"]
+
+    # Extract sensor data 
+    accel_x = np.array([item.get("accel", {}).get("x", 0) for item in all_batches])
+    accel_y = np.array([item.get("accel", {}).get("y", 0) for item in all_batches])
+    accel_z = np.array([item.get("accel", {}).get("z", 0) for item in all_batches])
+    gyro_x = np.array([item.get("gyro", {}).get("x", 0) for item in all_batches])
+    gyro_y = np.array([item.get("gyro", {}).get("y", 0) for item in all_batches])
+    gyro_z = np.array([item.get("gyro", {}).get("z", 0) for item in all_batches])
+    force = np.array([item.get("force", 0) for item in all_batches])
 
     # DC bias removal
     accel_x_dcb = accel_x - np.mean(accel_x)
@@ -83,7 +93,7 @@ async def send_new_data(foot_name, last_timestamp, websocket):
 
     processed_data = []
 
-    for i, item in enumerate(new_data):
+    for i, item in enumerate(all_batches):
         # Prepare full processed structure for frontend
         pd = {
             "timestamp": round(float(item["timestamp"]), 3),
