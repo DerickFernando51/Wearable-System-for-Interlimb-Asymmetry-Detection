@@ -117,20 +117,9 @@ async def send_new_data(foot_name, last_timestamp, websocket):
         
         processed_data.append(pd)
 
-        # Save median-filtered values for asymmetry calculation
-        # buf_item = {
-        #     "force": float(force_filt[i]),
-        #     "accel_x": float(accel_x_filt[i]),
-        #     "accel_y": float(accel_y_filt[i]),
-        #     "accel_z": float(accel_z_filt[i]),
-        #     "gyro_x": float(gyro_x_filt[i]),
-        #     "gyro_y": float(gyro_y_filt[i]),
-        #     "gyro_z": float(gyro_z_filt[i]),
-        # }
-
-        #rms_accel = np.sqrt(accel_x[i]**2 + accel_y[i]**2 + accel_z[i]**2)
+     
+        
         rms_accel = np.sqrt(accel_x_filt[i]**2 + accel_y_filt[i]**2 + accel_z_filt[i]**2)
-        #rms_gyro = np.sqrt(gyro_x[i]**2 + gyro_y[i]**2 + gyro_z[i]**2)
         rms_gyro = np.sqrt(gyro_x_filt[i]**2 + gyro_y_filt[i]**2 + gyro_z_filt[i]**2)
 
         buf_item = {
