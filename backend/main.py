@@ -38,8 +38,7 @@ async def send_new_data(foot_name, last_timestamp, websocket):
     ref = db.reference(foot_name)
 
     if last_timestamp is None:
-        # First fetch, just take the latest 50 points
-        data = ref.order_by_child("timestamp").limit_to_last(50).get() or {}
+     data = ref.get() or {} # Fetch everything for this session
     else:
         # Only fetch new points greater than last_timestamp
         data = (

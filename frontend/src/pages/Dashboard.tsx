@@ -104,9 +104,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard-container">
-      <h1 className="title">
-        Wearable System for Interlimb Asymmetry Detection
-      </h1>
+       
 
       <div className="dashboard-grid">
         {/* Left Column */}

@@ -13,13 +13,13 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
   const [leftFootFirebase, setLeftFootFirebase] = useState<FootDataPoint[]>([]);
   const [rightFootFirebase, setRightFootFirebase] = useState<FootDataPoint[]>([]);
 
-  const MAX_POINTS = 500000;
+  const MAX_POINTS = 60000;
   const wsRef = useRef<WebSocket | null>(null);
 
   // --- Firebase subscription ---
   useEffect(() => {
-    const leftRef = query(ref(database, 'leftFoot'), limitToLast(50));
-    const rightRef = query(ref(database, 'rightFoot'), limitToLast(50));
+    const leftRef = query(ref(database, 'leftFoot'), limitToLast(5));
+    const rightRef = query(ref(database, 'rightFoot'), limitToLast(5));
 
     const unsubscribeLeft = onValue(leftRef, snapshot => {
       const data = snapshot.val() as Record<string, { batch: FootDataPoint[] }> | null;
