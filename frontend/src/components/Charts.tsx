@@ -24,9 +24,7 @@ import "../App.css";
 interface FootChartProps {
   footData: FootDataPoint[];
   view: keyof AccelData | keyof GyroData;
-  setView: React.Dispatch<
-    React.SetStateAction<keyof AccelData | keyof GyroData>
-  >;
+  setView: (view: keyof AccelData | keyof GyroData) => void;
   title: ReactNode;
   type: "accel" | "gyro";
 }
@@ -44,17 +42,16 @@ export const FootChart = ({
     { value: "median_filtered", label: "Median Filtered" },
   ];
 
-  const handleViewChange = useCallback(
-    debounce(
-      (newView: keyof AccelData | keyof GyroData) => setView(newView),
-      100
-    ),
-    []
-  );
+  
+
+  const handleViewChange = (newView: keyof AccelData | keyof GyroData) => {
+  setView(newView);
+  };
+
 
   const chart = useMemo(
     () => (
-      <ResponsiveContainer width="100%" height={350}>
+      <ResponsiveContainer  key={view} width="100%" height={350}>
         <LineChart className="line-chart-container" data={footData}>
           <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
           <XAxis dataKey="timestamp" tick={{ fill: "#475569", fontSize: 12 }} />
@@ -167,14 +164,11 @@ export const ForceChart = ({
     { value: "median_filtered", label: "Median Filtered" },
   ];
 
-  const handleViewChange = useCallback(
-    debounce((v: ForceView) => setView(v), 100),
-    []
-  );
+   const handleViewChange = (v: ForceView) => setView(v);
 
   const chart = useMemo(
     () => (
-      <ResponsiveContainer width="100%" height={350}>
+      <ResponsiveContainer  key={view} width="100%" height={350}>
         <LineChart className="line-chart-container" data={footData}>
           <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
           <XAxis dataKey="timestamp" tick={{ fill: "#475569", fontSize: 12 }} />

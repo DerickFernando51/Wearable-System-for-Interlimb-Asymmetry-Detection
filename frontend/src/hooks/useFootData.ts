@@ -4,13 +4,19 @@ import { ref, onValue, query, limitToLast } from 'firebase/database';
 import type { FootDataPoint, WSData, AsymmetryIndex } from '../types';
 
 export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu') {
-  const [leftFootProcessed, setLeftFootProcessed] = useState<FootDataPoint[]>([]);
-  const [rightFootProcessed, setRightFootProcessed] = useState<FootDataPoint[]>([]);
+  // --- WebSocket Data (for charts) ---
+  const [leftFootWS, setLeftFootWS] = useState<FootDataPoint[]>([]);
+  const [rightFootWS, setRightFootWS] = useState<FootDataPoint[]>([]);
   const [asymmetryIndex, setAsymmetryIndex] = useState<AsymmetryIndex>(null);
+
+  // --- Firebase Data (for other purposes) ---
+  const [leftFootFirebase, setLeftFootFirebase] = useState<FootDataPoint[]>([]);
+  const [rightFootFirebase, setRightFootFirebase] = useState<FootDataPoint[]>([]);
+
   const MAX_POINTS = 500000;
   const wsRef = useRef<WebSocket | null>(null);
 
-  // Firebase subscription
+  // --- Firebase subscription ---
   useEffect(() => {
     const leftRef = query(ref(database, 'leftFoot'), limitToLast(50));
     const rightRef = query(ref(database, 'rightFoot'), limitToLast(50));
@@ -19,7 +25,7 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
       const data = snapshot.val() as Record<string, { batch: FootDataPoint[] }> | null;
       if (data) {
         const batches = Object.values(data).flatMap(entry => entry.batch);
-        setLeftFootProcessed(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
+        setLeftFootFirebase(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
       }
     });
 
@@ -27,7 +33,7 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
       const data = snapshot.val() as Record<string, { batch: FootDataPoint[] }> | null;
       if (data) {
         const batches = Object.values(data).flatMap(entry => entry.batch);
-        setRightFootProcessed(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
+        setRightFootFirebase(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
       }
     });
 
@@ -37,7 +43,7 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
     };
   }, []);
 
-  // WebSocket connection
+  // --- WebSocket connection (for charts) ---
   useEffect(() => {
     let shouldReconnect = true;
 
@@ -49,20 +55,40 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
       wsRef.current.onmessage = event => {
         try {
           const data: WSData = JSON.parse(event.data);
+          console.log("WS Data:", data);
 
           if (data.asymmetry_index) setAsymmetryIndex(data.asymmetry_index);
 
-          if (data.leftFoot) {
-            const batches = Object.values(data.leftFoot).flatMap(entry => entry.batch);
-            setLeftFootProcessed(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
+          if (data.leftFoot?.batch) {
+            const newPoints: FootDataPoint[] = data.leftFoot.batch;
+            console.log("Left Foot WS batch:", newPoints);
+
+            setLeftFootWS(prev => {
+              const updated = [
+                ...prev.slice(-MAX_POINTS + newPoints.length),
+                ...newPoints,
+              ];
+              console.log("Left Foot WS updated (state):", updated);
+              return updated;
+            });
           }
 
-          if (data.rightFoot) {
-            const batches = Object.values(data.rightFoot).flatMap(entry => entry.batch);
-            setRightFootProcessed(prev => [...prev.slice(-MAX_POINTS + batches.length), ...batches]);
+
+          if (data.rightFoot?.batch) {
+            const newPoints: FootDataPoint[] = data.rightFoot.batch;
+            console.log("Right Foot WS batch:", newPoints);
+
+            setRightFootWS(prev => {
+              const updated = [
+                ...prev.slice(-MAX_POINTS + newPoints.length),
+                ...newPoints,
+              ];
+              console.log("Right Foot WS updated (state):", updated);
+              return updated;
+            });
           }
 
-          
+
         } catch (err) {
           console.error('WebSocket parse error:', err);
         }
@@ -81,5 +107,12 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
     };
   }, [wsUrl]);
 
-  return { leftFootProcessed, rightFootProcessed, asymmetryIndex };
+  // --- Return both data sources ---
+  return {
+    leftFootWS,
+    rightFootWS,
+    leftFootFirebase,
+    rightFootFirebase,
+    asymmetryIndex,
+  };
 }

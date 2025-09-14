@@ -15,7 +15,7 @@ export type GyroData = {
 export type ForceView = "raw" | "dcb_removed" | "median_filtered";
 
 export type FootDataPoint = {
-  timestamp: string;
+  timestamp: number; // ✅ backend sends float, not string
   force: Record<ForceView, number>;
   accel: AccelData;
   gyro: GyroData;
@@ -24,17 +24,7 @@ export type FootDataPoint = {
 export type AsymmetryIndex = Record<string, number> | null;
 
 export interface WSData {
-  leftFoot?: Record<string, { batch: FootDataPoint[] }>;
-  rightFoot?: Record<string, { batch: FootDataPoint[] }>;
+  leftFoot?: { batch: FootDataPoint[] };    
+  rightFoot?: { batch: FootDataPoint[] };   
   asymmetry_index?: AsymmetryIndex;
 }
-
-export type FootData = {
-  accel?: Record<string, { x?: number; y?: number; z?: number }>;
-  gyro?: Record<string, { x?: number; y?: number; z?: number }>;
-  force?: number | Record<string, number>;
-  batch?: FootDataPoint[];
-};
-
- 
- 

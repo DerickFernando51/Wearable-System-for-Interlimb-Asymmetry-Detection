@@ -21,33 +21,35 @@ import GraphsPanel from "../components/GraphsPanel";
 
 function Dashboard() {
   const dispatch = useDispatch();
-  const { leftFootProcessed, rightFootProcessed, asymmetryIndex } =
-    useFootData();
+  const {
+    leftFootWS,
+    rightFootWS,
+    leftFootFirebase,
+    rightFootFirebase,
+    asymmetryIndex,
+  } = useFootData();
   const { startRecording, stopRecording } = useRecording();
   const footDataState = useSelector((state: RootState) => state.footData);
   const uiState = useSelector((state: RootState) => state.ui);
 
   const [activeView, setActiveView] = useState<"table" | "graphs">("table");
 
-  // Update Redux store when foot data changes
+  // Update Redux store with Firebase data for table
   useEffect(() => {
-    dispatch(setLeftFoot(leftFootProcessed));
-    dispatch(setRightFoot(rightFootProcessed));
-    if (
-      asymmetryIndex &&
-      typeof asymmetryIndex === "object" &&
-      !Array.isArray(asymmetryIndex)
-    ) {
+    dispatch(setLeftFoot(leftFootFirebase));
+    dispatch(setRightFoot(rightFootFirebase));
+
+    if (asymmetryIndex && typeof asymmetryIndex === "object" && !Array.isArray(asymmetryIndex)) {
       dispatch(setAsymmetryIndex(asymmetryIndex));
     } else {
       dispatch(setAsymmetryIndex(null));
     }
-    console.log("Left foot processed from hook:", leftFootProcessed);
-    console.log("Right foot processed from hook:", rightFootProcessed);
-    console.log("Asymmetry index from hook:", asymmetryIndex);
-  }, [leftFootProcessed, rightFootProcessed, asymmetryIndex, dispatch]);
 
-  // Latest point helper (array-based)
+    console.log("Left foot Firebase:", leftFootFirebase);
+    console.log("Right foot Firebase:", rightFootFirebase);
+  }, [leftFootFirebase, rightFootFirebase, asymmetryIndex, dispatch]);
+
+  // Latest point helper
   const getLatestPoint = (points: FootDataPoint[] | undefined | null) => {
     if (!points || points.length === 0) return null;
     return points[points.length - 1];
@@ -69,11 +71,11 @@ function Dashboard() {
     if (!data) return 0;
 
     if (sensor === "force") {
-      return data ?? 0; // force is a number in your Firebase data
+      return data ?? 0;
     }
 
     if (!axis) return 0;
-    return data[axis] ?? 0;
+    return data[view ?? "raw"]?.[axis] ?? 0;
   };
 
   // Table row renderer
@@ -174,18 +176,6 @@ function Dashboard() {
 
             <div className="scrollable">
               {activeView === "table" ? (
-                <div className="table-wrapper">{/* table content */}</div>
-              ) : (
-                <>
-                  <div className="horizontal-line"></div>
-
-                  <GraphsPanel
-                    leftFootData={footDataState.leftFoot}
-                    rightFootData={footDataState.rightFoot}
-                  />
-                </>
-              )}
-              {activeView === "table" ? (
                 <div className="table-wrapper">
                   <table className="data-table">
                     <thead>
@@ -200,18 +190,18 @@ function Dashboard() {
                     <tbody>
                       {renderRow(
                         "Timestamp",
-                        latestLeft?.timestamp ?? "-",
-                        latestRight?.timestamp ?? "-"
+                        getLatestPoint(leftFootFirebase)?.timestamp ?? "-",
+                        getLatestPoint(rightFootFirebase)?.timestamp ?? "-"
                       )}
                       {renderRow(
                         "Force",
                         getSensorValue(
-                          latestLeft,
+                          getLatestPoint(leftFootFirebase),
                           "force",
                           uiState.leftForceView
                         ),
                         getSensorValue(
-                          latestRight,
+                          getLatestPoint(rightFootFirebase),
                           "force",
                           uiState.rightForceView
                         )
@@ -226,13 +216,13 @@ function Dashboard() {
                         renderRow(
                           axis.toUpperCase(),
                           getSensorValue(
-                            latestLeft,
+                            getLatestPoint(leftFootFirebase),
                             "accel",
                             uiState.leftAccelView,
                             axis
                           ),
                           getSensorValue(
-                            latestRight,
+                            getLatestPoint(rightFootFirebase),
                             "accel",
                             uiState.rightAccelView,
                             axis
@@ -249,13 +239,13 @@ function Dashboard() {
                         renderRow(
                           axis.toUpperCase(),
                           getSensorValue(
-                            latestLeft,
+                            getLatestPoint(leftFootFirebase),
                             "gyro",
                             uiState.leftGyroView,
                             axis
                           ),
                           getSensorValue(
-                            latestRight,
+                            getLatestPoint(rightFootFirebase),
                             "gyro",
                             uiState.rightGyroView,
                             axis
@@ -266,7 +256,10 @@ function Dashboard() {
                   </table>
                 </div>
               ) : (
-                <div className="graphs-wrapper"></div>
+                <GraphsPanel
+                  leftFootData={leftFootWS}
+                  rightFootData={rightFootWS}
+                />
               )}
             </div>
           </div>

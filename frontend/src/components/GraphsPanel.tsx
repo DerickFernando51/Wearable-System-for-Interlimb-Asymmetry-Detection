@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../store";
 import { MemoizedFootChart, MemoizedForceChart } from "./Charts";
-import type { FootDataPoint } from "../types";
+import type { AccelData, FootDataPoint } from "../types";
 import {
   setLeftAccelView,
   setRightAccelView,
@@ -19,10 +19,7 @@ interface GraphsPanelProps {
 
 const GraphsPanel: React.FC<GraphsPanelProps> = ({ leftFootData, rightFootData }) => {
   const dispatch = useDispatch();
-    const uiState = useSelector((state: RootState) => state.ui);
-console.log("GraphsPanel received leftFootData:", leftFootData);
-console.log("GraphsPanel received rightFootData:", rightFootData);
-
+  const uiState = useSelector((state: RootState) => state.ui);
 
   return (
     <div className="graph-section">
@@ -31,41 +28,33 @@ console.log("GraphsPanel received rightFootData:", rightFootData);
         <MemoizedFootChart
           footData={leftFootData}
           view={uiState.leftAccelView}
-          setView={(v) =>
-            dispatch(setLeftAccelView(typeof v === "function" ? v(uiState.leftAccelView) : v))
-          }
-          title={<span className="chart-title">Left Foot Acceleration</span>}
+          setView={(v) => dispatch(setLeftAccelView(v))}
+          title="Left Foot Acceleration"
           type="accel"
         />
         <MemoizedFootChart
           footData={rightFootData}
           view={uiState.rightAccelView}
-          setView={(v) =>
-            dispatch(setRightAccelView(typeof v === "function" ? v(uiState.rightAccelView) : v))
-          }
-          title={<span className="chart-title">Right Foot Acceleration</span>}
+          setView={(v) => dispatch(setRightAccelView(v))}
+          title="Right Foot Acceleration"
           type="accel"
         />
       </div>
 
-      {/* Angular velocity */}
+      {/* Angular Velocity */}
       <div className="graph-columns">
         <MemoizedFootChart
           footData={leftFootData}
           view={uiState.leftGyroView}
-          setView={(v) =>
-            dispatch(setLeftGyroView(typeof v === "function" ? v(uiState.leftGyroView) : v))
-          }
-          title={<span className="chart-title">Left Foot Angular Velocity</span>}
+          setView={(v) => dispatch(setLeftGyroView(v))}
+          title="Left Foot Angular Velocity"
           type="gyro"
         />
         <MemoizedFootChart
           footData={rightFootData}
           view={uiState.rightGyroView}
-          setView={(v) =>
-            dispatch(setRightGyroView(typeof v === "function" ? v(uiState.rightGyroView) : v))
-          }
-          title={<span className="chart-title">Right Foot Angular Velocity</span>}
+          setView={(v) => dispatch(setRightGyroView(v))}
+          title="Right Foot Angular Velocity"
           type="gyro"
         />
       </div>
@@ -76,13 +65,13 @@ console.log("GraphsPanel received rightFootData:", rightFootData);
           footData={leftFootData}
           view={uiState.leftForceView}
           setView={(v) => dispatch(setLeftForceView(v))}
-          title={<span className="chart-title">Left Foot Force</span>}
+          title="Left Foot Force"
         />
         <MemoizedForceChart
           footData={rightFootData}
           view={uiState.rightForceView}
           setView={(v) => dispatch(setRightForceView(v))}
-          title={<span className="chart-title">Right Foot Force</span>}
+          title="Right Foot Force"
         />
       </div>
     </div>

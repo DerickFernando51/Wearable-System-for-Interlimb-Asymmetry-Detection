@@ -8,8 +8,8 @@ import os
 from dotenv import load_dotenv
 import asyncio
 
-KERNEL_SIZE = 1
-KERNEL_SIZE_FORCE = 1
+KERNEL_SIZE = 5
+KERNEL_SIZE_FORCE = 3
 left_foot_buffer = []
 right_foot_buffer = []
 
@@ -106,6 +106,7 @@ async def send_new_data(foot_name, last_timestamp, websocket):
                 "raw":  {"x": round(float(accel_x[i]), 3), "y": round(float(accel_y[i]), 3), "z": round(float(accel_z[i]), 3)},
                 "dcb_removed":  {"x": round(float(accel_x_dcb[i]), 3), "y": round(float(accel_y_dcb[i]), 3), "z": round(float(accel_z_dcb[i]), 3)},
                 "median_filtered":   {"x": round(float(accel_x_filt[i]), 3), "y": round(float(accel_y_filt[i]), 3), "z": round(float(accel_z_filt[i]), 3)},
+            },
             "gyro": {
                 "raw": {"x": round(float(gyro_x[i]), 3), "y": round(float(gyro_y[i]), 3), "z": round(float(gyro_z[i]), 3)},
                 "dcb_removed": {"x": round(float(gyro_x_dcb[i]), 3), "y": round(float(gyro_y_dcb[i]), 3), "z": round(float(gyro_z_dcb[i]), 3)},
@@ -114,7 +115,7 @@ async def send_new_data(foot_name, last_timestamp, websocket):
             
                 }
             }
-        }
+        
         processed_data.append(pd)
 
         # Save median-filtered values for asymmetry calculation
