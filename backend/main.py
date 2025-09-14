@@ -147,6 +147,7 @@ async def calculate_asymmetry_index(websocket):
 
     channels = ["force", "accel", "gyro"]
     asymmetry_index = {}
+    stronger_foot = {}
 
     for ch in channels:
         left_values = np.array([item[ch] for item in left_foot_buffer])
@@ -162,7 +163,17 @@ async def calculate_asymmetry_index(websocket):
             total = np.mean(np.abs(left_values)) + np.mean(np.abs(right_values))
             asymmetry_index[ch] = ((strong - weak) / total * 100) if total != 0 else 0
 
-    await websocket.send_json({"asymmetry_index": asymmetry_index})
+            if left_mean > right_mean:
+                stronger_foot[ch] = "left"
+            elif right_mean > left_mean:
+                stronger_foot[ch] = "right"
+            else:
+                stronger_foot[ch] = "equal"
+
+    await websocket.send_json({
+        "asymmetry_index": asymmetry_index,
+        "stronger_foot": stronger_foot
+    })
 
     # Clear buffers
     left_foot_buffer.clear()
