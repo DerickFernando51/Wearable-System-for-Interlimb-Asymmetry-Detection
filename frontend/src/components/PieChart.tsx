@@ -1,0 +1,63 @@
+import React from "react";
+import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
+
+type AsymmetryIndex = {
+  accel_contribution?: number;
+  gyro_contribution?: number;
+  force_contribution?: number;
+  comp_score?: number;
+  overall_stronger?: string;
+};
+
+type ContributionPieChartProps = {
+  asymmetryIndex: AsymmetryIndex | null;
+};
+
+const COLORS = ["#FA8C16", "#00C49F", "#FFBB28"];
+
+export default function ContributionPieChart({ asymmetryIndex }: ContributionPieChartProps) {
+  if (!asymmetryIndex) return <div>No data</div>;
+
+  // Build pie data from contributions
+  const pieData = [
+    { name: "Accelerometer", value: asymmetryIndex.accel_contribution ?? 0 },
+    { name: "Gyroscope", value: asymmetryIndex.gyro_contribution ?? 0 },
+    { name: "Force", value: asymmetryIndex.force_contribution ?? 0 },
+  ];
+
+  return (
+    <div>
+      <div className="composite-score-container">
+        <span className="composite-score-label">Composite Asymmetry Score:</span>
+        <span className="composite-score-value">
+          {asymmetryIndex.comp_score?.toFixed(3) ?? "0.000"}%
+        </span>
+      </div>
+      <div className="composite-score-container">
+        <span className="composite-score-label">Stronger Limb:</span>
+        <span className="composite-score-value">
+          {asymmetryIndex.overall_stronger ?? "—"}
+        </span>
+      </div>
+
+      <PieChart width={400} height={225}>
+        <Pie
+          data={pieData}
+          cx="50%"
+          cy="50%"
+          innerRadius={50}
+          outerRadius={80}
+          paddingAngle={5}
+          dataKey="value"
+          label={({ value }) => `${value.toFixed(1)}%`}
+        >
+          {pieData.map((_, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Legend verticalAlign="bottom" height={15} />
+        <Tooltip />
+      </PieChart>
+    </div>
+  );
+}

@@ -138,8 +138,9 @@ async def send_new_data(foot_name, last_timestamp, websocket):
     await websocket.send_json({foot_name: {"batch": processed_data}})
     return latest_timestamp
 
-async def calculate_asymmetry_index(websocket):
 
+
+async def calculate_asymmetry_index(websocket):
     global left_foot_buffer, right_foot_buffer
 
     if not left_foot_buffer or not right_foot_buffer:
@@ -149,19 +150,23 @@ async def calculate_asymmetry_index(websocket):
     asymmetry_index = {}
     stronger_foot = {}
 
+    # --- Step 1: Calculate per-channel values ---
     for ch in channels:
         left_values = np.array([item[ch] for item in left_foot_buffer])
         right_values = np.array([item[ch] for item in right_foot_buffer])
+
         left_mean = np.mean(np.abs(left_values))
         right_mean = np.mean(np.abs(right_values))
 
         if left_mean == 0 or right_mean == 0:
-             asymmetry_index[ch] = 0
+            asymmetry_index[ch] = 0
+            stronger_foot[ch] = "equal"
         else:
-            strong = max(np.mean(np.abs(left_values)), np.mean(np.abs(right_values)))
-            weak = min(np.mean(np.abs(left_values)), np.mean(np.abs(right_values)))
-            total = np.mean(np.abs(left_values)) + np.mean(np.abs(right_values))
-            asymmetry_index[ch] = ((strong - weak) / total * 100) if total != 0 else 0
+            strong = max(left_mean, right_mean)
+            weak = min(left_mean, right_mean)
+            total = left_mean + right_mean
+
+            asymmetry_index[ch] = round(((strong - weak) / total * 100) if total != 0 else 0.0, 3)
 
             if left_mean > right_mean:
                 stronger_foot[ch] = "left"
@@ -170,14 +175,47 @@ async def calculate_asymmetry_index(websocket):
             else:
                 stronger_foot[ch] = "equal"
 
+    # --- Step 2: Compute composite score ---
+    comp_score = round(np.mean([asymmetry_index[ch] for ch in channels]), 3)
+    total_asym = sum(asymmetry_index[ch] for ch in channels)
+
+    if total_asym > 0:
+        accel_contribution = round((asymmetry_index["accel"] / total_asym) * 100, 3)
+        gyro_contribution = round((asymmetry_index["gyro"] / total_asym) * 100, 3)
+        force_contribution = round((asymmetry_index["force"] / total_asym) * 100, 3)
+    else:
+        accel_contribution = gyro_contribution = force_contribution = 0.0
+
+    # --- Step 3: Determine overall stronger foot (majority vote) ---
+    votes = [stronger_foot[ch] for ch in channels if stronger_foot[ch] != "equal"]
+
+    if votes:
+        # Count occurrences
+        left_count = votes.count("left")
+        right_count = votes.count("right")
+
+        if left_count > right_count:
+            overall_stronger = "left"
+        elif right_count > left_count:
+            overall_stronger = "right"
+        else:
+            # Tie → pick based on lowest asymmetry index channel
+            best_channel = min(asymmetry_index, key=asymmetry_index.get)
+            overall_stronger = stronger_foot[best_channel]
+    else:
+        overall_stronger = "equal"
+
+    # --- Step 4: Send results ---
     await websocket.send_json({
-        "asymmetry_index": asymmetry_index,
-        "stronger_foot": stronger_foot
+        "comp_score": comp_score,
+        "overall_stronger": overall_stronger, 
+        "accel_contribution": accel_contribution,
+        "gyro_contribution": gyro_contribution,
+        "force_contribution": force_contribution
+        #"asymmetry_index": asymmetry_index,
+        #"stronger_foot": stronger_foot, 
     })
 
-    # Clear buffers
-    left_foot_buffer.clear()
-    right_foot_buffer.clear()
 
 @app.websocket("/ws/imu")
 async def imu_ws(websocket: WebSocket):

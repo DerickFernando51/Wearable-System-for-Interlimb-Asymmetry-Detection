@@ -18,6 +18,7 @@ import type {
 } from "../types";
 import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
 import GraphsPanel from "../components/GraphsPanel";
+ 
 
 function Dashboard() {
   const dispatch = useDispatch();
@@ -87,7 +88,7 @@ function Dashboard() {
     </tr>
   );
 
-  // Pie chart data
+  // // Pie chart data
   const channelValues = [
     { name: "Accelerometer", value: footDataState.asymmetryIndex?.accel ?? 0 },
     { name: "Gyroscope", value: footDataState.asymmetryIndex?.gyro ?? 0 },
@@ -127,7 +128,7 @@ function Dashboard() {
               <span className="composite-score-label">Left</span>
             </div>
 
-            <PieChart width={400} height={225}>
+          <PieChart width={400} height={225}>
               <Pie
                 data={pieData}
                 cx="50%"
@@ -148,6 +149,7 @@ function Dashboard() {
               <Legend verticalAlign="bottom" height={15} />
               <Tooltip />
             </PieChart>
+
           </div>
         </div>
 
@@ -173,7 +175,8 @@ function Dashboard() {
             </div>
 
             <div className="scrollable">
-              {activeView === "table" ? (
+              <div className="horizontal-line"></div>
+              {activeView === "table" ? ( 
                 <div className="table-wrapper">
                   <table className="data-table">
                     <thead>
