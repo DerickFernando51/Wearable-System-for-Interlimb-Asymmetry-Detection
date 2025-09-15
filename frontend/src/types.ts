@@ -15,16 +15,24 @@ export type GyroData = {
 export type ForceView = "raw" | "dcb_removed" | "median_filtered";
 
 export type FootDataPoint = {
-  timestamp: number; // ✅ backend sends float, not string
+  timestamp: number;  
   force: Record<ForceView, number>;
   accel: AccelData;
   gyro: GyroData;
 };
 
-export type AsymmetryIndex = Record<string, number> | null;
+
 
 export interface WSData {
   leftFoot?: { batch: FootDataPoint[] };    
   rightFoot?: { batch: FootDataPoint[] };   
   asymmetry_index?: AsymmetryIndex;
+}
+
+export interface AsymmetryIndex {
+  comp_score: number;
+  overall_stronger: 'left' | 'right' | 'equal'; 
+  accel_contribution: number;
+  gyro_contribution: number;
+  force_contribution: number;
 }

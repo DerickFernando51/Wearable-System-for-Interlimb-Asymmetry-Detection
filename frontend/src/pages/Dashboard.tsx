@@ -18,7 +18,8 @@ import type {
 } from "../types";
 import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
 import GraphsPanel from "../components/GraphsPanel";
- 
+import ContributionPieChart from "../components/PieChart";
+
 
 function Dashboard() {
   const dispatch = useDispatch();
@@ -28,6 +29,11 @@ function Dashboard() {
     leftFootFirebase,
     rightFootFirebase,
     asymmetryIndex,
+    compScore,
+    overallStronger,
+    accelContribution,
+    gyroContribution,
+    forceContribution,
   } = useFootData();
   const { startRecording, stopRecording } = useRecording();
   const footDataState = useSelector((state: RootState) => state.footData);
@@ -88,24 +94,11 @@ function Dashboard() {
     </tr>
   );
 
-  // // Pie chart data
-  const channelValues = [
-    { name: "Accelerometer", value: footDataState.asymmetryIndex?.accel ?? 0 },
-    { name: "Gyroscope", value: footDataState.asymmetryIndex?.gyro ?? 0 },
-    { name: "Force", value: footDataState.asymmetryIndex?.force ?? 0 },
-  ];
-
-  const total = channelValues.reduce((sum, entry) => sum + entry.value, 0);
-  const pieData = channelValues.map((entry) => ({
-    name: entry.name,
-    value: total === 0 ? 0 : (entry.value / total) * 100,
-  }));
-
-  const COLORS = ["#FA8C16", "#00C49F", "#FFBB28"];
+ 
 
   return (
     <div className="dashboard-container">
-       
+
 
       <div className="dashboard-grid">
         {/* Left Column */}
@@ -117,39 +110,17 @@ function Dashboard() {
 
           <div className="dashboard-card">
             <h2>Asymmetry Index</h2>
-            <div className="composite-score-container">
-              <span className="composite-score-label">
-                Composite Asymmetry Score:
-              </span>
-              <span className="composite-score-value">10%</span>
-            </div>
-            <div className="composite-score-container">
-              <span className="composite-score-label">Stronger Limb:</span>
-              <span className="composite-score-label">Left</span>
-            </div>
+            
 
-          <PieChart width={400} height={225}>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                paddingAngle={5}
-                dataKey="value"
-                label={({ value }) => `${value.toFixed(1)}%`}
-              >
-                {pieData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Legend verticalAlign="bottom" height={15} />
-              <Tooltip />
-            </PieChart>
-
+            <ContributionPieChart
+              asymmetryIndex={{
+                comp_score: compScore,
+                overall_stronger: overallStronger,
+                accel_contribution: accelContribution,
+                gyro_contribution: gyroContribution,
+                force_contribution: forceContribution,
+              }}
+            />
           </div>
         </div>
 
@@ -176,7 +147,7 @@ function Dashboard() {
 
             <div className="scrollable">
               <div className="horizontal-line"></div>
-              {activeView === "table" ? ( 
+              {activeView === "table" ? (
                 <div className="table-wrapper">
                   <table className="data-table">
                     <thead>

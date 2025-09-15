@@ -1,22 +1,28 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import database from '../firebase';
 import { ref, onValue, query, limitToLast } from 'firebase/database';
 import type { FootDataPoint, WSData, AsymmetryIndex } from '../types';
 
 export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu') {
-  // --- WebSocket Data (for charts) ---
+  // --- WebSocket Data ---
   const [leftFootWS, setLeftFootWS] = useState<FootDataPoint[]>([]);
   const [rightFootWS, setRightFootWS] = useState<FootDataPoint[]>([]);
-  const [asymmetryIndex, setAsymmetryIndex] = useState<AsymmetryIndex>(null);
 
-  // --- Firebase Data (for other purposes) ---
+  // --- Firebase Data ---
   const [leftFootFirebase, setLeftFootFirebase] = useState<FootDataPoint[]>([]);
   const [rightFootFirebase, setRightFootFirebase] = useState<FootDataPoint[]>([]);
+
+  // --- Asymmetry contributions ---
+  const [compScore, setCompScore] = useState<number>(0);
+  const [overallStronger, setOverallStronger] = useState<'left' | 'right' | 'equal'>('equal');
+  const [accelContribution, setAccelContribution] = useState<number>(0);
+  const [gyroContribution, setGyroContribution] = useState<number>(0);
+  const [forceContribution, setForceContribution] = useState<number>(0);
 
   const MAX_POINTS = 60000;
   const wsRef = useRef<WebSocket | null>(null);
 
-  // --- Firebase subscription ---
+  // --- Firebase subscriptions ---
   useEffect(() => {
     const leftRef = query(ref(database, 'leftFoot'), limitToLast(5));
     const rightRef = query(ref(database, 'rightFoot'), limitToLast(5));
@@ -43,7 +49,7 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
     };
   }, []);
 
-  // --- WebSocket connection (for charts) ---
+  // --- WebSocket connection ---
   useEffect(() => {
     let shouldReconnect = true;
 
@@ -54,41 +60,29 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
 
       wsRef.current.onmessage = event => {
         try {
-          const data: WSData = JSON.parse(event.data);
-          console.log("WS Data:", data);
+          const data: WSData & {
+            comp_score?: number;
+            overall_stronger?: 'left' | 'right' | 'equal';
+            accel_contribution?: number;
+            gyro_contribution?: number;
+            force_contribution?: number;
+          } = JSON.parse(event.data);
 
-          if (data.asymmetry_index) setAsymmetryIndex(data.asymmetry_index);
+          if (data.comp_score !== undefined) setCompScore(data.comp_score);
+          if (data.overall_stronger) setOverallStronger(data.overall_stronger);
+          if (data.accel_contribution !== undefined) setAccelContribution(data.accel_contribution);
+          if (data.gyro_contribution !== undefined) setGyroContribution(data.gyro_contribution);
+          if (data.force_contribution !== undefined) setForceContribution(data.force_contribution);
 
           if (data.leftFoot?.batch) {
             const newPoints: FootDataPoint[] = data.leftFoot.batch;
-            console.log("Left Foot WS batch:", newPoints);
-
-            setLeftFootWS(prev => {
-              const updated = [
-                ...prev.slice(-MAX_POINTS + newPoints.length),
-                ...newPoints,
-              ];
-              console.log("Left Foot WS updated (state):", updated);
-              return updated;
-            });
+            setLeftFootWS(prev => [...prev.slice(-MAX_POINTS + newPoints.length), ...newPoints]);
           }
-
 
           if (data.rightFoot?.batch) {
             const newPoints: FootDataPoint[] = data.rightFoot.batch;
-            console.log("Right Foot WS batch:", newPoints);
-
-            setRightFootWS(prev => {
-              const updated = [
-                ...prev.slice(-MAX_POINTS + newPoints.length),
-                ...newPoints,
-              ];
-              console.log("Right Foot WS updated (state):", updated);
-              return updated;
-            });
+            setRightFootWS(prev => [...prev.slice(-MAX_POINTS + newPoints.length), ...newPoints]);
           }
-
-
         } catch (err) {
           console.error('WebSocket parse error:', err);
         }
@@ -107,12 +101,26 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
     };
   }, [wsUrl]);
 
-  // --- Return both data sources ---
+  // --- Memoized asymmetry index ---
+  const asymmetryIndex: AsymmetryIndex | null = useMemo(() => ({
+    comp_score: compScore,
+    overall_stronger: overallStronger,
+    accel_contribution: accelContribution,
+    gyro_contribution: gyroContribution,
+    force_contribution: forceContribution,
+  }), [compScore, overallStronger, accelContribution, gyroContribution, forceContribution]);
+
+  // --- Return data ---
   return {
     leftFootWS,
     rightFootWS,
     leftFootFirebase,
     rightFootFirebase,
     asymmetryIndex,
+    compScore,
+    overallStronger,
+    accelContribution,
+    gyroContribution,
+    forceContribution,
   };
 }

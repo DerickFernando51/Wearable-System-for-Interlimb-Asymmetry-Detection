@@ -169,11 +169,11 @@ async def calculate_asymmetry_index(websocket):
             asymmetry_index[ch] = round(((strong - weak) / total * 100) if total != 0 else 0.0, 3)
 
             if left_mean > right_mean:
-                stronger_foot[ch] = "left"
+                stronger_foot[ch] = "Left"
             elif right_mean > left_mean:
-                stronger_foot[ch] = "right"
+                stronger_foot[ch] = "Right"
             else:
-                stronger_foot[ch] = "equal"
+                stronger_foot[ch] = "Equal"
 
     # --- Step 2: Compute composite score ---
     comp_score = round(np.mean([asymmetry_index[ch] for ch in channels]), 3)
