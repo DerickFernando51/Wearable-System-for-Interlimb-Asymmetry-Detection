@@ -54,7 +54,8 @@ export default function Table({ leftFoot, rightFoot }: Props) {
   const latestRight = getLatestPoint(rightFoot);
 
   return (
-    <div className="table-wrapper">
+      <div className="table-wrapper">
+           
       <table className="data-table">
         <thead>
           <tr className="table-header">

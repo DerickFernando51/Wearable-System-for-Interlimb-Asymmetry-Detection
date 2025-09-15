@@ -493,7 +493,8 @@ tr.indented td.label {
 .table-wrapper {
   max-height: 500px;  
   overflow-y: auto;
-  margin-top: 1rem;
+  margin-top: 4rem;
+  max-width: 600px;
 }
 
 /* Optional: table styling */
