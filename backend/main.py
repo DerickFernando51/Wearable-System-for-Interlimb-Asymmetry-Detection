@@ -31,6 +31,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
 async def send_new_data(foot_name, last_timestamp, websocket):
     global left_foot_buffer, right_foot_buffer
 
@@ -116,8 +118,6 @@ async def send_new_data(foot_name, last_timestamp, websocket):
             }
         
         processed_data.append(pd)
-
-     
         
         rms_accel = np.sqrt(accel_x_filt[i]**2 + accel_y_filt[i]**2 + accel_z_filt[i]**2)
         rms_gyro = np.sqrt(gyro_x_filt[i]**2 + gyro_y_filt[i]**2 + gyro_z_filt[i]**2)
@@ -191,13 +191,13 @@ async def calculate_asymmetry_index(websocket):
 
     if votes:
         # Count occurrences
-        left_count = votes.count("left")
-        right_count = votes.count("right")
+        left_count = votes.count("Left")
+        right_count = votes.count("Right")
 
         if left_count > right_count:
-            overall_stronger = "left"
+            overall_stronger = "Left"
         elif right_count > left_count:
-            overall_stronger = "right"
+            overall_stronger = "Right"
         else:
             # Tie → pick based on lowest asymmetry index channel
             best_channel = min(asymmetry_index, key=asymmetry_index.get)
@@ -232,13 +232,13 @@ async def imu_ws(websocket: WebSocket):
             # Calculate asymmetry only when recording stops
             if not recording_state:
                 await calculate_asymmetry_index(websocket)
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
 
             # Stream new data to frontend
             last_left_ts = await send_new_data("leftFoot", last_left_ts, websocket)
             last_right_ts = await send_new_data("rightFoot", last_right_ts, websocket)
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
 
     except WebSocketDisconnect:
         print("Client disconnected")
