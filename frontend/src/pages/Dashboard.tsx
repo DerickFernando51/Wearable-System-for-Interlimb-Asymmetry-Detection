@@ -86,14 +86,7 @@ function Dashboard() {
     return data[view ?? "raw"]?.[axis] ?? 0;
   };
 
-  // Table row renderer
-  const renderRow = (label: string, leftValue: any, rightValue: any) => (
-    <tr key={label} className="table-row">
-      <td className="table-cell label">{label}</td>
-      <td className="table-cell">{leftValue ?? "—"}</td>
-      <td className="table-cell">{rightValue ?? "—"}</td>
-    </tr>
-  );
+ 
 
 
 

@@ -13,8 +13,8 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
   const [rightFootFirebase, setRightFootFirebase] = useState<FootDataPoint[]>([]);
 
   // --- Asymmetry contributions ---
-  const [compScore, setCompScore] = useState<number>(0);
-  const [overallStronger, setOverallStronger] = useState<'left' | 'right' | 'equal'>('equal');
+  const [compScore, setCompScore] = useState<number | undefined>(undefined);
+  const [overallStronger, setOverallStronger] = useState<'left' | 'right' | 'equal' | undefined>(undefined);
   const [accelContribution, setAccelContribution] = useState<number>(0);
   const [gyroContribution, setGyroContribution] = useState<number>(0);
   const [forceContribution, setForceContribution] = useState<number>(0);
@@ -70,8 +70,17 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
             stronger_foot?: Record<string, 'Left' | 'Right' | 'Equal'>;
           } = JSON.parse(event.data);
 
-          if (data.comp_score !== undefined) setCompScore(data.comp_score);
-          if (data.overall_stronger) setOverallStronger(data.overall_stronger);
+          if (data.comp_score !== undefined) {
+            setCompScore(data.comp_score);
+          } else {
+            setCompScore(undefined);
+          }
+
+          if (data.overall_stronger) {
+            setOverallStronger(data.overall_stronger);
+          } else {
+            setOverallStronger(undefined);
+          }
           if (data.accel_contribution !== undefined) setAccelContribution(data.accel_contribution);
           if (data.gyro_contribution !== undefined) setGyroContribution(data.gyro_contribution);
           if (data.force_contribution !== undefined) setForceContribution(data.force_contribution);

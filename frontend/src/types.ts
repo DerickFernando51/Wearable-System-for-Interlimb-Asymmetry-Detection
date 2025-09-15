@@ -30,9 +30,10 @@ export interface WSData {
 }
 
 export interface AsymmetryIndex {
-  comp_score: number;
-  overall_stronger: 'left' | 'right' | 'equal'; 
+  comp_score?: number;                      // optional
+  overall_stronger?: 'left' | 'right' | 'equal'; // optional
   accel_contribution: number;
   gyro_contribution: number;
   force_contribution: number;
 }
+

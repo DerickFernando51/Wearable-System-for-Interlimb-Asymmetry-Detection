@@ -187,7 +187,7 @@ async def calculate_asymmetry_index(websocket):
         accel_contribution = gyro_contribution = force_contribution = 0.0
 
     # --- Step 3: Determine overall stronger foot (majority vote) ---
-    votes = [stronger_foot[ch] for ch in channels if stronger_foot[ch] != "equal"]
+    votes = [stronger_foot[ch] for ch in channels if stronger_foot[ch] != "Equal"]
 
     if votes:
         # Count occurrences
