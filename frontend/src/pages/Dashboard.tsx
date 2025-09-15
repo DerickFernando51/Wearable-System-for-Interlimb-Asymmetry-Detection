@@ -19,6 +19,7 @@ import type {
 import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
 import GraphsPanel from "../components/GraphsPanel";
 import ContributionPieChart from "../components/PieChart";
+import Table from "../components/Table";
 
 
 function Dashboard() {
@@ -94,7 +95,7 @@ function Dashboard() {
     </tr>
   );
 
- 
+
 
   return (
     <div className="dashboard-container">
@@ -110,7 +111,7 @@ function Dashboard() {
 
           <div className="dashboard-card">
             <h2>Asymmetry Index</h2>
-            
+
 
             <ContributionPieChart
               asymmetryIndex={{
@@ -148,90 +149,9 @@ function Dashboard() {
             <div className="scrollable">
               <div className="horizontal-line"></div>
               {activeView === "table" ? (
-                <div className="table-wrapper">
-                  <table className="data-table">
-                    <thead>
-                      <tr className="table-header">
-                        <th className="header-cell rounded-left">Data</th>
-                        <th className="header-cell">Left Foot</th>
-                        <th className="header-cell rounded-right">
-                          Right Foot
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {renderRow(
-                        "Timestamp",
-                        getLatestPoint(leftFootFirebase)?.timestamp ?? "-",
-                        getLatestPoint(rightFootFirebase)?.timestamp ?? "-"
-                      )}
-                      {renderRow(
-                        "Force",
-                        getSensorValue(
-                          getLatestPoint(leftFootFirebase),
-                          "force",
-                          uiState.leftForceView
-                        ),
-                        getSensorValue(
-                          getLatestPoint(rightFootFirebase),
-                          "force",
-                          uiState.rightForceView
-                        )
-                      )}
-
-                      <tr className="section-row">
-                        <td className="section-cell" colSpan={3}>
-                          Accelerometer
-                        </td>
-                      </tr>
-                      {(["x", "y", "z"] as const).map((axis) =>
-                        renderRow(
-                          axis.toUpperCase(),
-                          getSensorValue(
-                            getLatestPoint(leftFootFirebase),
-                            "accel",
-                            uiState.leftAccelView,
-                            axis
-                          ),
-                          getSensorValue(
-                            getLatestPoint(rightFootFirebase),
-                            "accel",
-                            uiState.rightAccelView,
-                            axis
-                          )
-                        )
-                      )}
-
-                      <tr className="section-row">
-                        <td className="section-cell" colSpan={3}>
-                          Angular Velocity
-                        </td>
-                      </tr>
-                      {(["x", "y", "z"] as const).map((axis) =>
-                        renderRow(
-                          axis.toUpperCase(),
-                          getSensorValue(
-                            getLatestPoint(leftFootFirebase),
-                            "gyro",
-                            uiState.leftGyroView,
-                            axis
-                          ),
-                          getSensorValue(
-                            getLatestPoint(rightFootFirebase),
-                            "gyro",
-                            uiState.rightGyroView,
-                            axis
-                          )
-                        )
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                <Table leftFoot={leftFootFirebase} rightFoot={rightFootFirebase} />
               ) : (
-                <GraphsPanel
-                  leftFootData={leftFootWS}
-                  rightFootData={rightFootWS}
-                />
+                <GraphsPanel leftFootData={leftFootWS} rightFootData={rightFootWS} />
               )}
             </div>
           </div>
