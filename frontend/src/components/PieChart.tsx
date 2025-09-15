@@ -29,7 +29,7 @@ export default function ContributionPieChart({ asymmetryIndex }: ContributionPie
 
     return (
         <div>
-            <div className="composite-score-container">
+               <div className="composite-score-container">
                 <span className="composite-score">
                     <span className="composite-score-label">Composite Asymmetry Score:</span>
                     <span className="composite-score-value">
@@ -44,25 +44,28 @@ export default function ContributionPieChart({ asymmetryIndex }: ContributionPie
                         {asymmetryIndex.overall_stronger ?? "—"}
                     </span></span>
             </div>
-
-            <PieChart width={400} height={225}>
-                <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
-                >
-                    {pieData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                </Pie>
-                <Legend verticalAlign="bottom" height={15} />
-                <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
-            </PieChart>
+            
+            <div className="piechart-container">
+                <h3 className="piechart-title">Contribution Towards Composite Score:</h3>
+                <PieChart width={400} height={250}>
+                    <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
+                    >
+                        {pieData.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                    </Pie>
+                    <Legend verticalAlign="bottom" height={15} />
+                    <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
+                </PieChart>
+            </div>
         </div>
     );
 }
