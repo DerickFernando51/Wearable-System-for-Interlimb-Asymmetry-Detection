@@ -123,7 +123,7 @@ async def send_new_data(foot_name, last_timestamp, websocket):
         rms_gyro = np.sqrt(gyro_x_filt[i]**2 + gyro_y_filt[i]**2 + gyro_z_filt[i]**2)
 
         buf_item = {
-            "force": round(float(force[i]), 3),
+            "force": round(float(force_filt[i]), 3),
             "accel": round(rms_accel, 3),
             "gyro": round(rms_gyro, 3),
         }
@@ -211,9 +211,9 @@ async def calculate_asymmetry_index(websocket):
         "overall_stronger": overall_stronger, 
         "accel_contribution": accel_contribution,
         "gyro_contribution": gyro_contribution,
-        "force_contribution": force_contribution
-        #"asymmetry_index": asymmetry_index,
-        #"stronger_foot": stronger_foot, 
+        "force_contribution": force_contribution,
+        "asymmetry_index": asymmetry_index,
+        "stronger_foot": stronger_foot
     })
 
 

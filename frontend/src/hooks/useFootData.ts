@@ -66,6 +66,8 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
             accel_contribution?: number;
             gyro_contribution?: number;
             force_contribution?: number;
+            asymmetry_index?: Record<string, number>;
+            stronger_foot?: Record<string, 'Left' | 'Right' | 'Equal'>;
           } = JSON.parse(event.data);
 
           if (data.comp_score !== undefined) setCompScore(data.comp_score);
@@ -73,6 +75,10 @@ export default function useFootData(wsUrl: string = 'ws://localhost:8000/ws/imu'
           if (data.accel_contribution !== undefined) setAccelContribution(data.accel_contribution);
           if (data.gyro_contribution !== undefined) setGyroContribution(data.gyro_contribution);
           if (data.force_contribution !== undefined) setForceContribution(data.force_contribution);
+
+          if (data.asymmetry_index) console.log("[WS Update] Asymmetry Index:", data.asymmetry_index);
+          if (data.stronger_foot) console.log("[WS Update] Stronger Foot:", data.stronger_foot);
+
 
           if (data.leftFoot?.batch) {
             const newPoints: FootDataPoint[] = data.leftFoot.batch;

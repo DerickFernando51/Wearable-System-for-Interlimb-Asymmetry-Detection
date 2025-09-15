@@ -33,7 +33,7 @@ export default function ContributionPieChart({ asymmetryIndex }: ContributionPie
                 <span className="composite-score">
                     <span className="composite-score-label">Composite Asymmetry Score:</span>
                     <span className="composite-score-value">
-                        {asymmetryIndex.comp_score?.toFixed(2) ?? "0.00"}%
+                        {asymmetryIndex.comp_score?.toFixed(1) ?? "0.0"}%
                     </span>
                 </span>
             </div>
