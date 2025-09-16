@@ -162,7 +162,7 @@ export const ForceChart = ({
 
   const chart = useMemo(
     () => (
-      <ResponsiveContainer key={view} width="100%" height={600}>
+      <ResponsiveContainer key={view} width="100%" height={350}>
         <LineChart className="line-chart-container" data={footData}>
           <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
           <XAxis
