@@ -143,6 +143,7 @@ async def send_new_data(foot_name, last_timestamp, websocket):
 async def calculate_asymmetry_index(websocket):
     global left_foot_buffer, right_foot_buffer
 
+
     if not left_foot_buffer or not right_foot_buffer:
         return
 
@@ -171,7 +172,7 @@ async def calculate_asymmetry_index(websocket):
             asymmetry = ((strong - weak) / total * 100) if total != 0 else 0.0
             asymmetry_index[ch] = round(abs(asymmetry), 3)
 
-            # ✅ signed asymmetry and stronger side
+            # signed asymmetry and stronger side
             if left_median > right_median:
                 signed_indices[ch] = round(asymmetry, 3)   # Left = +
                 stronger_foot[ch] = "Left"
@@ -203,6 +204,9 @@ async def calculate_asymmetry_index(websocket):
         force_contribution = round((asymmetry_index["force"] / total_asym) * 100, 3)
     else:
         accel_contribution = gyro_contribution = force_contribution = 0.0
+    
+    left_foot_buffer.clear()
+    right_foot_buffer.clear()
 
     # --- Step 5: Send results ---
     await websocket.send_json({
@@ -213,6 +217,8 @@ async def calculate_asymmetry_index(websocket):
         "force_contribution": force_contribution,
         "asymmetry_index": asymmetry_index,
         "stronger_foot": stronger_foot
+
+         
     })
 
 
@@ -276,8 +282,9 @@ async def imu_ws(websocket: WebSocket):
             # --- Trigger recalculation when buffers change OR recording ends ---
             buffer_changed = (new_left_len != old_left_len) or (new_right_len != old_right_len)
 
-            if (not recording_state and prev_recording_state) or buffer_changed:
-                await calculate_asymmetry_index(websocket)
+            if not recording_state:
+                 await calculate_asymmetry_index(websocket)
+                 
 
             prev_recording_state = recording_state
             await asyncio.sleep(0.5)
