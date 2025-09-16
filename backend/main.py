@@ -149,34 +149,52 @@ async def calculate_asymmetry_index(websocket):
     channels = ["force", "accel", "gyro"]
     asymmetry_index = {}
     stronger_foot = {}
+    signed_indices = {}
 
     # --- Step 1: Calculate per-channel values ---
     for ch in channels:
         left_values = np.array([item[ch] for item in left_foot_buffer])
         right_values = np.array([item[ch] for item in right_foot_buffer])
 
-        left_mean = np.mean(np.abs(left_values))
-        right_mean = np.mean(np.abs(right_values))
+        left_median = np.median(np.abs(left_values))
+        right_median = np.median(np.abs(right_values))
 
-        if left_mean == 0 or right_mean == 0:
+        if left_median == 0 and right_median == 0:
             asymmetry_index[ch] = 0
-            stronger_foot[ch] = "equal"
+            signed_indices[ch] = 0
+            stronger_foot[ch] = "-"
         else:
-            strong = max(left_mean, right_mean)
-            weak = min(left_mean, right_mean)
-            total = left_mean + right_mean
+            strong = max(left_median, right_median)
+            weak = min(left_median, right_median)
+            total = left_median + right_median
 
-            asymmetry_index[ch] = round(((strong - weak) / total * 100) if total != 0 else 0.0, 3)
+            asymmetry = ((strong - weak) / total * 100) if total != 0 else 0.0
+            asymmetry_index[ch] = round(abs(asymmetry), 3)
 
-            if left_mean > right_mean:
+            # ✅ signed asymmetry and stronger side
+            if left_median > right_median:
+                signed_indices[ch] = round(asymmetry, 3)   # Left = +
                 stronger_foot[ch] = "Left"
-            elif right_mean > left_mean:
+            elif right_median > left_median:
+                signed_indices[ch] = round(-asymmetry, 3)  # Right = -
                 stronger_foot[ch] = "Right"
             else:
+                signed_indices[ch] = 0
                 stronger_foot[ch] = "Equal"
 
-    # --- Step 2: Compute composite score ---
-    comp_score = round(np.mean([asymmetry_index[ch] for ch in channels]), 3)
+    # --- Step 2: Compute signed composite score ---
+    signed_comp_score = np.mean(list(signed_indices.values()))
+
+    # --- Step 3: Overall stronger foot from signed score ---
+    if signed_comp_score > 0:
+        overall_stronger = "Left"
+    elif signed_comp_score < 0:
+        overall_stronger = "Right"
+    else:
+        overall_stronger = "Equal"
+
+    # --- Step 4: Final comp_score is absolute value ---
+    comp_score = round(abs(signed_comp_score), 3)
     total_asym = sum(asymmetry_index[ch] for ch in channels)
 
     if total_asym > 0:
@@ -186,26 +204,7 @@ async def calculate_asymmetry_index(websocket):
     else:
         accel_contribution = gyro_contribution = force_contribution = 0.0
 
-    # --- Step 3: Determine overall stronger foot (majority vote) ---
-    votes = [stronger_foot[ch] for ch in channels if stronger_foot[ch] != "Equal"]
-
-    if votes:
-        # Count occurrences
-        left_count = votes.count("Left")
-        right_count = votes.count("Right")
-
-        if left_count > right_count:
-            overall_stronger = "Left"
-        elif right_count > left_count:
-            overall_stronger = "Right"
-        else:
-            # Tie → pick based on lowest asymmetry index channel
-            best_channel = min(asymmetry_index, key=asymmetry_index.get)
-            overall_stronger = stronger_foot[best_channel]
-    else:
-        overall_stronger = "equal"
-
-    # --- Step 4: Send results ---
+    # --- Step 5: Send results ---
     await websocket.send_json({
         "comp_score": comp_score,
         "overall_stronger": overall_stronger, 
@@ -217,27 +216,70 @@ async def calculate_asymmetry_index(websocket):
     })
 
 
+# @app.websocket("/ws/imu")
+# async def imu_ws(websocket: WebSocket):
+#     global recording
+#     await websocket.accept()
+#     last_left_ts = None
+#     last_right_ts = None
+
+#     try:
+#         while True:
+#             # Get current recording state
+#             recording_state = db.reference("commands/recording").get() or False
+
+#             # Calculate asymmetry only when recording stops
+#             if not recording_state:
+#                 await calculate_asymmetry_index(websocket)
+#                 await asyncio.sleep(1)
+
+#             # Stream new data to frontend
+#             last_left_ts = await send_new_data("leftFoot", last_left_ts, websocket)
+#             last_right_ts = await send_new_data("rightFoot", last_right_ts, websocket)
+
+#             await asyncio.sleep(0.5)
+
+#     except WebSocketDisconnect:
+#         print("Client disconnected")
+
 @app.websocket("/ws/imu")
 async def imu_ws(websocket: WebSocket):
-    global recording
+    global left_foot_buffer, right_foot_buffer
     await websocket.accept()
     last_left_ts = None
     last_right_ts = None
+    prev_recording_state = False
 
     try:
         while True:
             # Get current recording state
             recording_state = db.reference("commands/recording").get() or False
 
-            # Calculate asymmetry only when recording stops
-            if not recording_state:
-                await calculate_asymmetry_index(websocket)
-                await asyncio.sleep(1)
+            # --- If recording starts, clear buffers ---
+            if recording_state and not prev_recording_state:
+                left_foot_buffer.clear()
+                right_foot_buffer.clear()
+                last_left_ts = None
+                last_right_ts = None
+                print("[INFO] Buffers cleared for new session.")
 
-            # Stream new data to frontend
+            # --- Stream new data to frontend ---
+            old_left_len = len(left_foot_buffer)
+            old_right_len = len(right_foot_buffer)
+
             last_left_ts = await send_new_data("leftFoot", last_left_ts, websocket)
             last_right_ts = await send_new_data("rightFoot", last_right_ts, websocket)
 
+            new_left_len = len(left_foot_buffer)
+            new_right_len = len(right_foot_buffer)
+
+            # --- Trigger recalculation when buffers change OR recording ends ---
+            buffer_changed = (new_left_len != old_left_len) or (new_right_len != old_right_len)
+
+            if (not recording_state and prev_recording_state) or buffer_changed:
+                await calculate_asymmetry_index(websocket)
+
+            prev_recording_state = recording_state
             await asyncio.sleep(0.5)
 
     except WebSocketDisconnect:
