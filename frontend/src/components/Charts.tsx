@@ -114,10 +114,8 @@ export const FootChart = ({
           <div className="select-wrapper relative">
             <select
               value={view}
-              onChange={(e) =>
-                handleViewChange(
-                  e.target.value as keyof AccelData | keyof GyroData
-                )
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                handleViewChange(e.target.value as keyof AccelData | keyof GyroData)
               }
               className="view-select border rounded px-2 py-1"
             >
@@ -223,9 +221,12 @@ export const ForceChart = ({
         <h2 className="graph-title">{title}</h2>
         <div className="graph-controls">
           <div className="select-wrapper relative">
+
             <select
               value={view}
-              onChange={(e) => handleViewChange(e.target.value as ForceView)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                handleViewChange(e.target.value as ForceView)
+              }
               className="view-select border rounded px-2 py-1"
             >
               {viewOptions.map((option) => (
