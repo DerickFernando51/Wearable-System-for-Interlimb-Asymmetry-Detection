@@ -11,3 +11,10 @@
 # Run tests with coverage (from frontend):
     cd frontend
     npm run test-coverage
+
+
+    
+<img width="1512" height="821" alt="image" src="https://github.com/user-attachments/assets/bb2dcbf1-199c-4c9f-8e2e-5befcd18d741" />
+
+<img width="1512" height="821" alt="image" src="https://github.com/user-attachments/assets/c967280b-5ad7-4f7a-bb7f-873377f371dd" />
+
