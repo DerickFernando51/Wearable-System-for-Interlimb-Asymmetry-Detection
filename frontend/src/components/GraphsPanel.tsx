@@ -74,20 +74,6 @@ const GraphsPanel: React.FC<GraphsPanelProps> = ({ leftFootData, rightFootData }
           title="Right Foot Force"
         />
       </div>
-
-      <MemoizedFootChart
-          footData={leftFootData}
-          view={uiState.leftAccelView}
-          setView={(v) => dispatch(setLeftAccelView(v))}
-          title="Left Foot Acceleration"
-          type="accel"
-      />
-      <MemoizedForceChart
-          footData={leftFootData}
-          view={uiState.leftForceView}
-          setView={(v) => dispatch(setLeftForceView(v))}
-          title="Left Foot Force"
-        />
     </div>
   );
 };
