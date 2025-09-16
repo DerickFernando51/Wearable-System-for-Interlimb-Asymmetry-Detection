@@ -44,7 +44,7 @@ venv/
 # ======================
 serviceAccountKey.json
 serviceAccountKey2.json
-firebase.ts
+
 
 # ======================
 # macOS / Misc
