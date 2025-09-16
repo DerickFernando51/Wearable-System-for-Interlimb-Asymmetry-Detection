@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import type { RootState } from "../store";
+import { useState, useEffect } from "react";
+import {  useDispatch } from "react-redux";
 import ControlButtons from "../components/ControlButtons";
 import useFootData from "../hooks/useFootData";
 import { useRecording } from "../hooks/useRecording";
@@ -9,14 +8,7 @@ import {
   setRightFoot,
   setAsymmetryIndex,
 } from "../slices/footDataSlice";
-import type {
-  AccelData,
-  GyroData,
-  SensorAxis,
-  FootDataPoint,
-  ForceView,
-} from "../types";
-import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
+ 
 import GraphsPanel from "../components/GraphsPanel";
 import ContributionPieChart from "../components/PieChart";
 import Table from "../components/Table";
@@ -37,8 +29,8 @@ function Dashboard() {
     forceContribution,
   } = useFootData();
   const { startRecording, stopRecording } = useRecording();
-  const footDataState = useSelector((state: RootState) => state.footData);
-  const uiState = useSelector((state: RootState) => state.ui);
+  //const footDataState = useSelector((state: RootState) => state.footData);
+
 
   const [activeView, setActiveView] = useState<"table" | "graphs">("table");
 
@@ -57,39 +49,7 @@ function Dashboard() {
     console.log("Right foot Firebase:", rightFootFirebase);
   }, [leftFootFirebase, rightFootFirebase, asymmetryIndex, dispatch]);
 
-  // Latest point helper
-  const getLatestPoint = (points: FootDataPoint[] | undefined | null) => {
-    if (!points || points.length === 0) return null;
-    return points[points.length - 1];
-  };
-
-  const latestLeft = getLatestPoint(footDataState.leftFoot);
-  const latestRight = getLatestPoint(footDataState.rightFoot);
-
-  // Extract sensor value
-  const getSensorValue = (
-    foot: FootDataPoint | null,
-    sensor: "accel" | "gyro" | "force",
-    view?: ForceView | keyof AccelData | keyof GyroData,
-    axis?: keyof SensorAxis
-  ) => {
-    if (!foot) return 0;
-
-    const data = foot[sensor as keyof FootDataPoint] as any;
-    if (!data) return 0;
-
-    if (sensor === "force") {
-      return data ?? 0;
-    }
-
-    if (!axis) return 0;
-    return data[view ?? "raw"]?.[axis] ?? 0;
-  };
-
- 
-
-
-
+  
   return (
     <div className="dashboard-container">
 

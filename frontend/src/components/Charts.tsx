@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo } from "react";
 import type { ReactNode } from "react";
 import {
   LineChart,
@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { debounce } from "lodash";
+
 import type {
   FootDataPoint,
   ForceView,
@@ -42,16 +42,17 @@ export const FootChart = ({
     { value: "median_filtered", label: "Median Filtered" },
   ];
 
-  
+
 
   const handleViewChange = (newView: keyof AccelData | keyof GyroData) => {
-  setView(newView);
+    setView(newView);
   };
+
 
 
   const chart = useMemo(
     () => (
-      <ResponsiveContainer  key={view} width="100%" height={600}>
+      <ResponsiveContainer key={view} width="100%" height={600}>
         <LineChart className="line-chart-container" data={footData}>
           <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
           <XAxis
@@ -86,23 +87,15 @@ export const FootChart = ({
               key={axis}
               type="monotone"
               dataKey={(d: FootDataPoint) => {
-                const sensorData = d[type]; 
-                if (!sensorData) return 0;
-
-                // If nested view exists
-                if (typeof sensorData[view] === "object") {
-                  return sensorData[view]?.[axis] ?? 0;
-                }
-
-                // Flat structure fallback
-                return sensorData[axis] ?? 0;
+                const sensorData = d[type] as AccelData | GyroData;
+                const axisData = sensorData[view] as SensorAxis | undefined;
+                return axisData?.[axis] ?? 0;
               }}
               stroke={
                 axis === "x" ? "#ff4d4f" : axis === "y" ? "#52c41a" : "#1890ff"
               }
-              name={`${
-                type === "accel" ? "Accel" : "Gyro"
-              } ${axis.toUpperCase()}`}
+              name={`${type === "accel" ? "Accel" : "Gyro"
+                } ${axis.toUpperCase()}`}
               dot={false}
               strokeWidth={2}
             />
@@ -167,11 +160,11 @@ export const ForceChart = ({
     { value: "median_filtered", label: "Median Filtered" },
   ];
 
-   const handleViewChange = (v: ForceView) => setView(v);
+  const handleViewChange = (v: ForceView) => setView(v);
 
   const chart = useMemo(
     () => (
-      <ResponsiveContainer  key={view} width="100%" height={600}>
+      <ResponsiveContainer key={view} width="100%" height={600}>
         <LineChart className="line-chart-container" data={footData}>
           <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
           <XAxis
@@ -199,24 +192,24 @@ export const ForceChart = ({
           />
           <Legend wrapperStyle={{ fontSize: "12px", color: "#1e293b" }} />
           <Line
-  type="monotone"
-  dataKey={(d: FootDataPoint) => {
-    const f = d.force;
-    if (f == null) return 0;
+            type="monotone"
+            dataKey={(d: FootDataPoint) => {
+              const f = d.force;
+              if (f == null) return 0;
 
-    // Nested object
-    if (typeof f === "object") {
-      return f[view] ?? 0;
-    }
+              // Nested object
+              if (typeof f === "object") {
+                return f[view] ?? 0;
+              }
 
-    // Flat number
-    return f;
-  }}
-  stroke="#1890ff"
-  name="Force"
-  dot={false}
-  strokeWidth={2}
-/>
+              // Flat number
+              return f;
+            }}
+            stroke="#1890ff"
+            name="Force"
+            dot={false}
+            strokeWidth={2}
+          />
 
         </LineChart>
       </ResponsiveContainer>

@@ -1,4 +1,3 @@
-import React from "react";
 import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
 
 type AsymmetryIndex = {
@@ -59,7 +58,9 @@ export default function ContributionPieChart({ asymmetryIndex }: ContributionPie
                             outerRadius={80}
                             paddingAngle={5}
                             dataKey="value"
-                            label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
+                            label={({ name, value }: { name?: string; value?: number }) =>
+                                value != null ? `${name}: ${value.toFixed(1)}%` : `${name}: 0%`
+                            }
                         >
                             {pieData.map((_, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
