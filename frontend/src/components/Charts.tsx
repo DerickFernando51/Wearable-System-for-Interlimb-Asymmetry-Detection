@@ -51,10 +51,13 @@ export const FootChart = ({
 
   const chart = useMemo(
     () => (
-      <ResponsiveContainer  key={view} width="100%" height={350}>
+      <ResponsiveContainer  key={view} width="100%" height={600}>
         <LineChart className="line-chart-container" data={footData}>
           <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-          <XAxis dataKey="timestamp" tick={{ fill: "#475569", fontSize: 12 }} />
+          <XAxis
+            dataKey="timestamp"
+            tick={{ fill: "#475569", fontSize: 12 }}
+            label={{ value: "Time (s)", position: "insideBottom", offset: 0, fill: "#1e293b", fontSize: 12, fontWeight: 500, }} />
           <YAxis
             tick={{ fill: "#475569", fontSize: 12 }}
             label={{
@@ -168,10 +171,13 @@ export const ForceChart = ({
 
   const chart = useMemo(
     () => (
-      <ResponsiveContainer  key={view} width="100%" height={350}>
+      <ResponsiveContainer  key={view} width="100%" height={600}>
         <LineChart className="line-chart-container" data={footData}>
           <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-          <XAxis dataKey="timestamp" tick={{ fill: "#475569", fontSize: 12 }} />
+          <XAxis
+            dataKey="timestamp"
+            tick={{ fill: "#475569", fontSize: 12 }}
+            label={{ value: "Time (s)", position: "insideBottom", offset: 0, fill: "#1e293b", fontSize: 12, fontWeight: 500, }} />
           <YAxis
             tick={{ fill: "#475569", fontSize: 12 }}
             label={{

@@ -5,6 +5,7 @@ import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 from scipy.signal import medfilt
 import os
+import json
 from dotenv import load_dotenv
 import asyncio
 
@@ -17,8 +18,13 @@ right_foot_buffer = []
 # Firebase init
 load_dotenv()
 db_url = os.getenv("FIREBASE_DB_URL")
-cred = credentials.Certificate("backend/serviceAccountKey.json")
+#cred = credentials.Certificate("backend/serviceAccountKey.json")
+
+
+service_account_info = os.getenv("FIREBASE_SERVICE_ACCOUNT")
+cred = credentials.Certificate(json.loads(service_account_info))
 firebase_admin.initialize_app(cred, {"databaseURL": db_url})
+ 
 
 app = FastAPI()
 
@@ -157,8 +163,8 @@ async def calculate_asymmetry_index(websocket):
         left_values = np.array([item[ch] for item in left_foot_buffer])
         right_values = np.array([item[ch] for item in right_foot_buffer])
 
-        left_median = np.median(np.abs(left_values))
-        right_median = np.median(np.abs(right_values))
+        left_median = np.mean(np.abs(left_values))
+        right_median = np.mean(np.abs(right_values))
 
         if left_median == 0 and right_median == 0:
             asymmetry_index[ch] = 0
