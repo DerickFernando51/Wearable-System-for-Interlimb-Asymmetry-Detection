@@ -1,5 +1,3 @@
-# Start the development server:
-    npm run dev
 
 <br>
 <p align="center">
