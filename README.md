@@ -8,7 +8,7 @@
 - Implements FreeRTOS tasks to sample data, upload it to the cloud, and monitor the recording state, employing a mutex to share a circular buffer across tasks.
 - Sensor data is stored in a Firebase Realtime Database.
 - A FastAPI (Python) backend retrieves this data, applies signal filtering and computes asymmetry indices using NumPy, and streams the results to the frontend through a WebSocket.
-- The results are displayed in dashboard interface built with React, TypeScript, and Tailwind CSS, using Recharts to display live plots of sensor data.
+- The results are displayed in a dashboard interface built with React, TypeScript, and Tailwind CSS, using Recharts to display live plots of sensor data.
 
 
 
