@@ -1,14 +1,14 @@
 # Wearable System for Interlimb Asymmetry Detection
-(ESP32-C3, C/C++, I²C, ADC, Wi-Fi, Firebase, TypeScript, React, FastAPI)
+(ESP32-C3, C/C++, FreeRTOS, I²C, ADC, Wi-Fi, Firebase, TypeScript, React, FastAPI)
 <br>
 
-- A real-time wearable system that detects and quantifies interlimb asymmetries by analyzing acceleration, angular velocity and force of movements. 
-- Integrates Inertial Measurement Unit (IMU) and Force Sensitive Resistor (FSR) sensors to capture kinematic and kinetic data respectively.
-- The ESP32-C3 MCU manages I²C and ADC interfacing, real-time data acquisition, and wireless transmission over Wi-Fi.
-- The sensor data is stored in a Firebase Realtime Database. 
-- A FastAPI (Python) backend retrieves this data, applies signal filtering and computes asymmetry indices using NumPy, and streams the results to the frontend through a WebSocket. 
+- Detects and quantifies interlimb asymmetries by analyzing acceleration, angular velocity, and force of movements.
+- Integrates IMU and FSR sensors to capture kinematic and kinetic data.
+- ESP32-C3 MCU handles I²C and ADC interfacing, real-time data acquisition, and Wi-Fi transmission.
+- Implements FreeRTOS tasks to sample data, upload it to the cloud, and monitor the recording state, employing a mutex to share a circular buffer across tasks.
+- Sensor data is stored in a Firebase Realtime Database.
+- A FastAPI (Python) backend retrieves this data, applies signal filtering and computes asymmetry indices using NumPy, and streams the results to the frontend through a WebSocket.
 - The results are displayed in dashboard interface built with React, TypeScript, and Tailwind CSS, using Recharts to display live plots of sensor data.
-
 
 
 
