@@ -39,7 +39,7 @@
 <p align="center">
 <img width="900" height="281" alt="image" src="https://github.com/user-attachments/assets/8cf80a89-a078-4014-9371-c363290d6877" />
 <br>
-  <em>Fig. 3: Top and Bottom PCB Layers </em>
+  <em>Fig. 4: Top and Bottom PCB Layers </em>
 </p><br>
 
 
