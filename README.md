@@ -37,17 +37,27 @@
 </p><br>
 
 <p align="center">
-<img width="900" height="281" alt="image" src="https://github.com/user-attachments/assets/8cf80a89-a078-4014-9371-c363290d6877" />
-<br>
-  <em>Fig. 4: Top and Bottom PCB Layers </em>
-</p><br>
-
-
-<p align="center">
 <img width="900" height="373" alt="image" src="https://github.com/user-attachments/assets/b101f314-94bf-48e3-8ef0-5efb8a657bed" />
 <br>
   <em>Fig. 4: Side and Front Views of the Wearable on Foot </em>
 </p>
+
+<p align="center">
+<img width="900" height="281" alt="image" src="https://github.com/user-attachments/assets/8cf80a89-a078-4014-9371-c363290d6877" />
+<br>
+  <em>Fig. 5: Top and Bottom PCB Layers </em>
+</p><br>
+
+<p align="center">
+<img width="1512" height="750" alt="image" src="https://github.com/user-attachments/assets/d9462f62-b20f-4eb1-913a-4129fa56cf77" />
+<br>
+  <em>Fig. 6: Circuit Diagram</em>
+</p><br>
+
+
+
+
+
 
  
 
