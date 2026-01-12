@@ -29,16 +29,28 @@
 </p><br>
 
 
+
 <p align="center">
-<img width="930" height="266" alt="image" src="https://github.com/user-attachments/assets/46d4cd88-d016-42aa-a38e-811f857eac94" />
+<img width="900" height="764" alt="image" src="https://github.com/user-attachments/assets/fbc0543d-5bf9-4dd8-8f39-3dfd9694cd70" />
 <br>
-  <em>Fig. 3: Wearable Device Components and Assembly Process </em>
+  <em>Fig. 3: Device Components and Enclosure Features </em>
 </p><br>
 
 <p align="center">
-<img width="853" height="266" alt="image" src="https://github.com/user-attachments/assets/1e6d6f4e-d36a-431c-926f-b73449584d83" />
+<img width="900" height="281" alt="image" src="https://github.com/user-attachments/assets/8cf80a89-a078-4014-9371-c363290d6877" />
 <br>
-  <em>Fig. 4: Overall Device Components with Side and Front Views of the Wearable on Foot </em>
+  <em>Fig. 3: Top and Bottom PCB Layers </em>
+</p><br>
+
+
+<p align="center">
+<img width="900" height="373" alt="image" src="https://github.com/user-attachments/assets/b101f314-94bf-48e3-8ef0-5efb8a657bed" />
+<br>
+  <em>Fig. 4: Side and Front Views of the Wearable on Foot </em>
 </p>
+
+ 
+
+
 
 
