@@ -31,7 +31,7 @@
 
 
 <p align="center">
-<img width="900" height="764" alt="image" src="https://github.com/user-attachments/assets/fbc0543d-5bf9-4dd8-8f39-3dfd9694cd70" />
+<img width="700" height="764" alt="image" src="https://github.com/user-attachments/assets/fbc0543d-5bf9-4dd8-8f39-3dfd9694cd70" />
 <br>
   <em>Fig. 3: Device Components and Enclosure Features </em>
 </p><br>
