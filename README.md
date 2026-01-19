@@ -44,9 +44,16 @@
 </p><br>
 
 <p align="center">
+<img width="900" height="521" alt="image" src="https://github.com/user-attachments/assets/4e353265-96f8-4eea-b802-aa1139f960bc" />
+
+<br>
+  <em>Fig. 5: Enclosure Design Features </em>
+</p><br>
+
+<p align="center">
 <img width="1512" height="750" alt="image" src="https://github.com/user-attachments/assets/d9462f62-b20f-4eb1-913a-4129fa56cf77" />
 <br>
-  <em>Fig. 5: Circuit Diagram</em>
+  <em>Fig. 6: Circuit Diagram</em>
 </p><br>
 
 
