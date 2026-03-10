@@ -51,7 +51,9 @@
 </p><br>
 
 <p align="center">
-<img width="1512" height="750" alt="image" src="https://github.com/user-attachments/assets/d9462f62-b20f-4eb1-913a-4129fa56cf77" />
+<img width="1512" height="750" alt="image" src="https://github.com/user-attachments/assets/11913fb6-6b77-46c6-b666-1f65c0c83e0d" />
+
+
 <br>
   <em>Fig. 6: Circuit Diagram</em>
 </p><br>
