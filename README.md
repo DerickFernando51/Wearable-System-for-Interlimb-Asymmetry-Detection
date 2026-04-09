@@ -31,33 +31,16 @@
 
 
 <p align="center">
-<img width="700" height="764" alt="image" src="https://github.com/user-attachments/assets/fbc0543d-5bf9-4dd8-8f39-3dfd9694cd70" />
+<img width="930" height="266" alt="image" src="https://github.com/user-attachments/assets/46d4cd88-d016-42aa-a38e-811f857eac94" />
 <br>
-  <em>Fig. 3: Device Components and Enclosure Features </em>
-</p><br>
-
-
-<p align="center">
-<img width="900" height="281" alt="image" src="https://github.com/user-attachments/assets/8cf80a89-a078-4014-9371-c363290d6877" />
-<br>
-  <em>Fig. 4: Fig. 4: Top and Bottom Views of 4-Layer PCB </em>
+  <em>Fig. 3: Wearable Device Components and Assembly Process </em>
 </p><br>
 
 <p align="center">
-<img width="900" height="521" alt="image" src="https://github.com/user-attachments/assets/4e353265-96f8-4eea-b802-aa1139f960bc" />
-
+<img width="853" height="266" alt="image" src="https://github.com/user-attachments/assets/1e6d6f4e-d36a-431c-926f-b73449584d83" />
 <br>
-  <em>Fig. 5: Enclosure Design Features </em>
-</p><br>
-
-<p align="center">
-<img width="1512" height="750" alt="image" src="https://github.com/user-attachments/assets/11913fb6-6b77-46c6-b666-1f65c0c83e0d" />
-
-
-<br>
-  <em>Fig. 6: Circuit Diagram</em>
-</p><br>
-
+  <em>Fig. 4: Overall Device Components with Side and Front Views of the Wearable on Foot </em>
+</p>
 
 
 
